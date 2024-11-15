@@ -1,0 +1,45 @@
+@model MiWebAPI.ViewModel.LoginViewModel
+
+@{
+    ViewData["Title"] = "Login";
+}
+
+<h2 class="text-center">@ViewData["Title"]</h2>
+
+<!-- Mostrar mensaje de error si existe -->
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @Model.ErrorMessage
+    </div>
+}
+
+   @* @if (Model.IsAuthenticated)
+{
+    
+        <span class="nav-link text-dark me-3">Bienvenido, @Model.Username</span>
+        <a class="nav-link" href="@Url.Action("Logout", "Login")">Cerrar sesión</a>
+    
+}else{ *@
+  <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+      <div class="card shadow-sm p-4" style="max-width: 400px; width: 100%;">
+          <h4 class="card-title text-center mb-4">Iniciar sesión</h4>
+          <form method="post" asp-action="Login">
+              @Html.AntiForgeryToken()
+              <div class="mb-3">
+                  <label asp-for="Username" class="form-label"></label>
+                  <input asp-for="Username" class="form-control" />
+              </div>
+
+              <div class="mb-3">
+                  <label asp-for="Password" class="form-label"></label>
+                  <input asp-for="Password" type="password" class="form-control" />
+              </div>
+
+              <div class="d-grid gap-2">
+                  <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+              </div>
+          </form>
+      </div>
+  </div>
+@* } *@
