@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Crear Producto";
+}
+
+
+@model tl2_tp6_2024_Isas321.Models.Producto
+
+<h1>Crear Producto</h1>
+
+<form asp-action="Crear" asp-controller="Producto" method="post">
+    <div>
+        <label for="Descripcion">Descripción:</label>
+        <input type="text" id="Descripcion" name="Descripcion" value="@Model?.Descripcion" required />
+    </div>
+
+    <div>
+        <label for="Precio">Precio:</label>
+        <input type="number" id="Precio" name="Precio" step="0.01" value="@Model?.Precio" required />
+    </div>
+
+    <button type="submit">Guardar</button>
+</form>
