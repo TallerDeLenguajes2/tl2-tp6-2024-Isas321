@@ -1,6 +1,11 @@
+
+using tl2_tp6_2024_Isas321.Repositorios;
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<IUserRepository, InMemoryUserRepository>();
+builder.Services.AddScoped<IUserRepository, InMemoryUserRepository>(); 
+
+builder.Services.AddScoped<IProductoRepositorio, ProductoRepositorio>(); //Importante ponerlo
 
 // Habilitar servicios de sesiones
 builder.Services.AddSession(options =>
@@ -14,6 +19,8 @@ builder.Services.AddSession(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+
 
 var app = builder.Build();
 
