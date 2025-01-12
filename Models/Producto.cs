@@ -1,4 +1,4 @@
-namespace MiWebAPI.Models
+namespace tl2_tp6_2024_Isas321.Models
 {
     // public class ProductoCreateModel
     // {

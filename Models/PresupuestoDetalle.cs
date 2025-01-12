@@ -1,8 +1,9 @@
-namespace MiWebAPI.Models{
-  public class PresupuestoDetalle{
-    private int idPresupuesto;
-    private int idProducto;
-    private int cantidad;
+namespace tl2_tp6_2024_Isas321.Models
+{
+    public class PresupuestoDetalle{
+        private int idPresupuesto;
+        private int idProducto;
+        private int cantidad;
 
         public PresupuestoDetalle(int idPresupuesto, int idProducto, int cantidad)
         {
@@ -16,7 +17,7 @@ namespace MiWebAPI.Models{
         public int Cantidad { get => cantidad; set => cantidad = value; }
     
         public string MostrarPresupuesto(){
-      return $"{idPresupuesto} {idProducto} {cantidad}";
-    }
+            return $"{idPresupuesto} {idProducto} {cantidad}";
+        }
     }
 }
