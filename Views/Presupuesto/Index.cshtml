@@ -1,0 +1,51 @@
+@{
+    ViewData["Title"] = "Lista de Presupuestos";
+}
+
+@model List<tl2_tp6_2024_Isas321.Models.Presupuesto>
+
+<a class="btn btn-primary" href="/Presupuesto/Crear">Crear</a>
+
+<h2>Lista de Presupuestos</h2>
+
+<table class="table table-dark">
+    <thead>
+        <tr>
+            <th hidden>ID</th>
+            <th>Nombre Destinatario</th>
+            <th>Fecha</th>
+            <th>Detalles</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var presupuesto in Model)
+            {
+                <tr>
+                    <td hidden>@presupuesto.IdPresupuesto</td>
+                    <td>@presupuesto.NombreDestinatario</td>
+                    <td>@presupuesto.FechaCreacion.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <!-- Mostrar detalles como una lista anidada -->
+                        <ul>
+                            @foreach (var detalle in presupuesto.Detalles)
+                            {
+                                <li>
+                                    Producto: @detalle.Producto.Descripcion, 
+                                    Cantidad: @detalle.Cantidad
+                                </li>
+                            }
+                        </ul>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" class="text-center">No hay Presupuestos disponibles.</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -85,5 +85,4 @@ public class ProductoController : Controller
 
         return RedirectToAction("Index"); // Redirige a la lista de productos
     }
-
 }

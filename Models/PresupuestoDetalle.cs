@@ -1,23 +1,15 @@
-namespace tl2_tp6_2024_Isas321.Models
-{
-    public class PresupuestoDetalle{
-        private int idPresupuesto;
-        private int idProducto;
-        private int cantidad;
+namespace tl2_tp6_2024_Isas321.Models{
+  public class PresupuestoDetalle{
+    private Producto producto;
+    private int cantidad;
 
-        public PresupuestoDetalle(int idPresupuesto, int idProducto, int cantidad)
+        public PresupuestoDetalle(Producto producto, int cantidad)
         {
-            this.idPresupuesto = idPresupuesto;
-            this.idProducto = idProducto;
-            this.cantidad = cantidad;
+            this.Producto = producto;
+            this.Cantidad = cantidad;
         }
 
-        public int IdPresupuesto { get => idPresupuesto; set => idPresupuesto = value; }
-        public int IdProducto { get => idProducto; set => idProducto = value; }
+        public Producto Producto { get => producto; set => producto = value; }
         public int Cantidad { get => cantidad; set => cantidad = value; }
-    
-        public string MostrarPresupuesto(){
-            return $"{idPresupuesto} {idProducto} {cantidad}";
-        }
     }
 }
