@@ -4,6 +4,8 @@
 
 @model List<tl2_tp6_2024_Isas321.Models.Producto>
 
+<a class="btn btn-primary" href="/Producto/Crear">Crear</a>
+
 <h2>Lista de Productos</h2>
 
 <table class="table table-dark">
@@ -25,19 +27,20 @@
                     <td>@producto.Descripcion</td>
                     <td>@producto.Precio.ToString("C")</td>
                     <td>
-                        <a asp-controller="Producto" 
-                           asp-action="Editar" 
-                           asp-route-id="@producto.IdProducto">
+                        <a class="btn btn-warning" asp-controller="Producto" 
+                        asp-action="Editar" 
+                        asp-route-id="@producto.IdProducto">
                             Editar
                         </a>
                         |
-                        <a asp-controller="Producto" 
-                           asp-action="Eliminar" 
-                           asp-route-id="@producto.IdProducto" 
-                           onclick="return confirm('¿Estás seguro de que quieres eliminar este producto?')">
-                            Eliminar
-                        </a>
+                        <form asp-action="Eliminar" asp-route-id="@producto.IdProducto" method="post" style="display: inline;">
+                            <button class="btn btn-danger" type="submit" onclick="return confirm('¿Estás seguro de eliminar este producto?');">
+                                Eliminar
+                            </button>
+                        </form>
                     </td>
+
+
                 </tr>
             }
         }

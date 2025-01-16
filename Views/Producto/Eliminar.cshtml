@@ -1,0 +1,12 @@
+@model tl2_tp6_2024_Isas321.Models.Producto
+
+<h1>Confirmar Eliminación</h1>
+<p>¿Estás seguro de que deseas eliminar el siguiente producto?</p>
+<ul>
+    <li><strong>Descripción:</strong> @Model.Descripcion</li>
+    <li><strong>Precio:</strong> @Model.Precio</li>
+</ul>
+<form asp-action="EliminarConfirmado" asp-route-id="@Model.IdProducto" method="post">
+    <button type="submit">Sí, eliminar</button>
+    <a asp-action="Index">Cancelar</a>
+</form>
