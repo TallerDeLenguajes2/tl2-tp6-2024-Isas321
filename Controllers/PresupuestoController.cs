@@ -24,10 +24,40 @@ public class PresupuestoController : Controller
         return View(presupuestos);
     }
 
-    [HttpPost]
-    public IActionResult Crear()
-    {
-        List<Presupuesto> presupuestos = _presupuestoRepositorio.ObtenerPresupuestoCompleto();
-        return View(presupuestos);
-    }
+        // Acción para mostrar el formulario (GET)
+        [HttpGet]
+        public IActionResult Crear()
+        {
+            return View();
+        }
+
+        // Acción para procesar el formulario (POST)
+        [HttpPost]
+        public IActionResult Crear(Presupuesto presupuesto)
+        {
+            // Validar el modelo
+            if (!ModelState.IsValid)
+            {
+                return View(presupuesto);
+            }
+
+            // Crear un presupuesto vacío con los datos ingresados
+            var idPresupuesto = _presupuestoRepositorio.CrearPresupuestoVacio(presupuesto);
+
+            // Redirigir al usuario a una página de éxito o lista
+            TempData["MensajeExito"] = "Presupuesto creado exitosamente.";
+            return RedirectToAction("Detalle", new { id = idPresupuesto });
+        }
+
+        // Acción para mostrar detalles del presupuesto creado
+        public IActionResult Detalle(int id)
+        {
+            var presupuesto = _presupuestoRepositorio.ObtenerPorId(id);
+            if (presupuesto == null)
+            {
+                return NotFound();
+            }
+            return View(presupuesto);
+        }
+
 }

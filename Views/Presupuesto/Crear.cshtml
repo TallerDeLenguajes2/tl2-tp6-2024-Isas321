@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Crear Presupuesto";
+}
+
+@model tl2_tp6_2024_Isas321.Models.Presupuesto
+
+<h1>Crear Presupuesto</h1>
+
+<form asp-action="Crear" asp-controller="Presupuesto" method="post">
+    <div>
+        <label for="NombreDestinatario">Nombre del Destinatario:</label>
+        <input type="text" id="NombreDestinatario" name="NombreDestinatario" required />
+    </div>
+
+    <div>
+        <label for="FechaCreacion">Fecha de Creación:</label>
+        <input type="date" id="FechaCreacion" name="FechaCreacion" required />
+    </div>
+
+    <button type="submit">Guardar Presupuesto</button>
+</form>
+

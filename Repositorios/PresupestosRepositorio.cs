@@ -9,6 +9,7 @@ namespace tl2_tp6_2024_Isas321.Repositorios
         public int CrearPresupuestoVacio(Presupuesto presupuesto)
         {
             var _cadenaDeConexion = "Data Source = db/Tienda.db";
+
             string NombreDestinatario = presupuesto.NombreDestinatario;
             DateTime FechaCreacion = presupuesto.FechaCreacion.Date;
             int idPresupuesto = 0;
