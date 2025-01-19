@@ -44,17 +44,21 @@ public class ProductoController : Controller
         return View(producto); // Si hay errores, muestra el formulario con mensajes
     }
 
+
     [HttpPost("Producto/Eliminar/{id}")]
     public IActionResult Eliminar(int id)
     {
-        if(_productoRepositorio.Remove(id))
+        if (_productoRepositorio.Remove(id))
         {
             return RedirectToAction("Index");
-        } else
+        }
+        else
         {
-            return BadRequest("Error al eliminar.");
+            ViewBag.MensajeError = "No se pudo eliminar el producto. Serás redirigido en 5 segundos.";
+            return View("ErrorEliminar");
         }
     }
+
 
     [HttpGet]
     public IActionResult Editar(int id)

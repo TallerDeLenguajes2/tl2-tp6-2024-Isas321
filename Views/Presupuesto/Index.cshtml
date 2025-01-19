@@ -15,6 +15,7 @@
             <th>Nombre Destinatario</th>
             <th>Fecha</th>
             <th>Detalles</th>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
@@ -38,13 +39,24 @@
                             }
                         </ul>
                     </td>
+                    <td>
+                        <!-- Botón para eliminar -->
+                        <form method="post" 
+                              action="@Url.Action("Eliminar", "Presupuesto", new { id = presupuesto.IdPresupuesto })"
+                              style="display:inline;">
+                            <button type="submit" class="btn btn-danger"
+                                    onclick="return confirm('¿Estás seguro de eliminar este presupuesto?');">
+                                Eliminar
+                            </button>
+                        </form>
+                    </td>
                 </tr>
             }
         }
         else
         {
             <tr>
-                <td colspan="4" class="text-center">No hay Presupuestos disponibles.</td>
+                <td colspan="5" class="text-center">No hay Presupuestos disponibles.</td>
             </tr>
         }
     </tbody>

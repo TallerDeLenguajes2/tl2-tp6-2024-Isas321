@@ -87,23 +87,49 @@ namespace tl2_tp6_2024_Isas321.Repositorios
             }
         }
 
+        // public bool Remove(int id)
+        // {
+        //     int rowsAffected;
+        //     var connectionString = "Data Source=db/Tienda.db";
+        //     using (var sqliteConnection = new SqliteConnection(connectionString))
+        //     {
+        //         const string query = "DELETE FROM Productos WHERE idProducto = @id";
+        //         using (var command = new SqliteCommand(query, sqliteConnection))
+        //         {
+        //             sqliteConnection.Open();
+        //             command.Parameters.AddWithValue("@id", id);
+        //             rowsAffected = command.ExecuteNonQuery();
+        //             sqliteConnection.Close();
+        //             return rowsAffected==1;
+        //         }
+        //     }
+        // }
         public bool Remove(int id)
         {
-            int rowsAffected;
-            var connectionString = "Data Source=db/Tienda.db";
-            using (var sqliteConnection = new SqliteConnection(connectionString))
+            try
             {
-                const string query = "DELETE FROM Productos WHERE idProducto = @id";
-                using (var command = new SqliteCommand(query, sqliteConnection))
+                int rowsAffected;
+                var connectionString = "Data Source=db/Tienda.db";
+                using (var sqliteConnection = new SqliteConnection(connectionString))
                 {
-                    sqliteConnection.Open();
-                    command.Parameters.AddWithValue("@id", id);
-                    rowsAffected = command.ExecuteNonQuery();
-                    sqliteConnection.Close();
-                    return rowsAffected==1;
+                    const string query = "DELETE FROM Productos WHERE idProducto = @id";
+                    using (var command = new SqliteCommand(query, sqliteConnection))
+                    {
+                        sqliteConnection.Open();
+                        command.Parameters.AddWithValue("@id", id);
+                        rowsAffected = command.ExecuteNonQuery();
+                        return rowsAffected == 1;
+                    }
                 }
             }
+            catch (SqliteException ex) when (ex.SqliteErrorCode == 19) // Error 19: Clave foránea
+            {
+                // Log o mensaje de error
+                Console.WriteLine("No se puede eliminar el producto porque está relacionado con otros registros.");
+                return false;
+            }
         }
+
 
         //Id en ruta y producto en el cuerpo
         public bool ActualizarProducto(int id, Producto producto)

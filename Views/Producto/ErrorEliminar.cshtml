@@ -1,0 +1,19 @@
+@{
+    ViewData["Title"] = "Error al Eliminar";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="5;url=@Url.Action("Index", "Producto")" />
+    <title>@ViewData["Title"]</title>
+</head>
+<body>
+    <h1>Error al Eliminar</h1>
+    <p>@ViewBag.MensajeError</p>
+
+    <p>Si no eres redirigido automáticamente, haz clic <a href="@Url.Action("Index", "Producto")">aquí</a>.</p>
+</body>
+</html>
