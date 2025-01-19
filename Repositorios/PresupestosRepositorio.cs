@@ -5,31 +5,68 @@ using tl2_tp6_2024_Isas321.Models;
 namespace tl2_tp6_2024_Isas321.Repositorios
 {
     public class PresupuestoRepositorio : IPresupuestoRepositorio
-    {
+            {
         public int CrearPresupuestoVacio(Presupuesto presupuesto)
         {
-            var _cadenaDeConexion = "Data Source = db/Tienda.db";
+            // Ruta a la base de datos SQLite
+            var _cadenaDeConexion = "Data Source=db/Tienda.db";
 
-            string NombreDestinatario = presupuesto.NombreDestinatario;
-            DateTime FechaCreacion = presupuesto.FechaCreacion.Date;
-            int idPresupuesto = 0;
-            using (var sqlitecon = new SqliteConnection(_cadenaDeConexion))
+            // Validación básica de los datos de entrada
+            if (string.IsNullOrWhiteSpace(presupuesto.NombreDestinatario))
             {
-                sqlitecon.Open();
-
-                var consultaPresupuesto = @"INSERT INTO Presupuestos (NombreDestinatario, FechaCreacion) 
-                                            VALUES (@NombreDestinatario, @FechaCreacion);
-                                            SELECT last_insert_rowid();";
-
-                using (var commandPresupuesto = new SqliteCommand(consultaPresupuesto, sqlitecon))
-                {
-                    commandPresupuesto.Parameters.AddWithValue("@NombreDestinatario", NombreDestinatario);
-                    commandPresupuesto.Parameters.AddWithValue("@FechaCreacion", FechaCreacion.Date);
-                    idPresupuesto = Convert.ToInt32(commandPresupuesto.ExecuteScalar());
-                }
-
-                sqlitecon.Close();
+                throw new ArgumentException("El nombre del destinatario no puede estar vacío.", nameof(presupuesto.NombreDestinatario));
             }
+
+            if (presupuesto.FechaCreacion == default)
+            {
+                throw new ArgumentException("La fecha de creación no es válida.", nameof(presupuesto.FechaCreacion));
+            }
+
+            int idPresupuesto = 0;
+
+            try
+            {
+                using (var sqlitecon = new SqliteConnection(_cadenaDeConexion))
+                {
+                    sqlitecon.Open();
+
+                    // Consulta SQL para insertar y obtener el ID del nuevo presupuesto
+                    var consultaPresupuesto = @"
+                        INSERT INTO Presupuestos (NombreDestinatario, FechaCreacion) 
+                        VALUES (@NombreDestinatario, @FechaCreacion);
+                        SELECT last_insert_rowid();";
+
+                    using (var commandPresupuesto = new SqliteCommand(consultaPresupuesto, sqlitecon))
+                    {
+                        // Asignar valores a los parámetros
+                        commandPresupuesto.Parameters.AddWithValue("@NombreDestinatario", presupuesto.NombreDestinatario);
+                        // commandPresupuesto.Parameters.AddWithValue("@FechaCreacion", presupuesto.FechaCreacion.Date);
+                        commandPresupuesto.Parameters.AddWithValue("@FechaCreacion", presupuesto.FechaCreacion.ToString("yyyy-MM-dd"));
+
+                        // Ejecutar la consulta y obtener el ID generado
+                        object resultado = commandPresupuesto.ExecuteScalar();
+                        if (resultado != null && int.TryParse(resultado.ToString(), out int id))
+                        {
+                            idPresupuesto = id;
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException("No se pudo obtener el ID del presupuesto insertado.");
+                        }
+                    }
+                }
+            }
+            catch (SqliteException sqliteEx)
+            {
+                Console.WriteLine($"Error en la base de datos: {sqliteEx.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
+
             return idPresupuesto;
         }
 
@@ -97,10 +134,12 @@ namespace tl2_tp6_2024_Isas321.Repositorios
         {
             var _cadenaDeConexion = "Data Source = db/Tienda.db";
             var presupuestos = new List<Presupuesto>();
-            var consulta = @"SELECT Pres.idPresupuesto, Pres.NombreDestinatario, Pres.FechaCreacion, Prod.idProducto, Prod.Descripcion, Prod.Precio, PresD.Cantidad
+            var consulta = @"SELECT Pres.idPresupuesto, Pres.NombreDestinatario, Pres.FechaCreacion, 
+                                    Prod.idProducto, Prod.Descripcion, Prod.Precio, PresD.Cantidad
                             FROM Presupuestos Pres
-                            INNER JOIN  PresupuestosDetalle PresD ON Pres.idPresupuesto = PresD.idPresupuesto
-                            INNER JOIN Productos Prod ON Prod.idProducto = PresD.idProducto";
+                            LEFT JOIN PresupuestosDetalle PresD ON Pres.idPresupuesto = PresD.idPresupuesto
+                            LEFT JOIN Productos Prod ON Prod.idProducto = PresD.idProducto";
+
 
             using (var sqlitecon = new SqliteConnection(_cadenaDeConexion))
             {
@@ -116,13 +155,19 @@ namespace tl2_tp6_2024_Isas321.Repositorios
                         string nombreDestinatario = Convert.ToString(reader["NombreDestinatario"]);
                         DateTime fechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]).Date;
 
-                        int idProducto = Convert.ToInt32(reader["idProducto"]);
-                        string descripcion = Convert.ToString(reader["Descripcion"]);
-                        double precio = Convert.ToDouble(reader["Precio"]);
-                        int cantidad = Convert.ToInt32(reader["Cantidad"]);
+                        int? idProducto = reader["idProducto"] != DBNull.Value ? Convert.ToInt32(reader["idProducto"]) : (int?)null;
+                        string descripcion = reader["Descripcion"] != DBNull.Value ? Convert.ToString(reader["Descripcion"]) : null;
+                        double? precio = reader["Precio"] != DBNull.Value ? Convert.ToDouble(reader["Precio"]) : (double?)null;
+                        int? cantidad = reader["Cantidad"] != DBNull.Value ? Convert.ToInt32(reader["Cantidad"]) : (int?)null;
 
-                        var producto = new Producto(idProducto, descripcion, precio);
-                        var presupuestoDetalle = new PresupuestoDetalle(producto, cantidad);
+                        Producto producto = null;
+                        PresupuestoDetalle presupuestoDetalle = null;
+
+                        if (idProducto.HasValue)
+                        {
+                            producto = new Producto(idProducto.Value, descripcion, precio ?? 0);
+                            presupuestoDetalle = new PresupuestoDetalle(producto, cantidad ?? 0);
+                        }
 
                         // Verificar si el presupuesto ya está en el diccionario
                         if (!presupuestoDict.ContainsKey(idPresupuesto))
@@ -130,8 +175,12 @@ namespace tl2_tp6_2024_Isas321.Repositorios
                             presupuestoDict[idPresupuesto] = new Presupuesto(idPresupuesto, nombreDestinatario, fechaCreacion, new List<PresupuestoDetalle>());
                         }
 
-                        presupuestoDict[idPresupuesto].Detalles.Add(presupuestoDetalle);
+                        if (presupuestoDetalle != null)
+                        {
+                            presupuestoDict[idPresupuesto].Detalles.Add(presupuestoDetalle);
+                        }
                     }
+
                     presupuestos = presupuestoDict.Values.ToList();
                 }
                 sqlitecon.Close();
