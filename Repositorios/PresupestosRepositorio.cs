@@ -263,23 +263,50 @@ namespace tl2_tp6_2024_Isas321.Repositorios
         return resultado;
     }
 
+
     public bool Eliminar(int id)
     {
         var _cadenaDeConexion = "Data Source = db/Tienda.db";
         int rowsAffected;
-        const string query = "DELETE FROM Presupuestos WHERE idPresupuesto = @id";
+        const string deleteDetalleQuery = "DELETE FROM PresupuestosDetalle WHERE idPresupuesto = @id";
+        const string deletePresupuestoQuery = "DELETE FROM Presupuestos WHERE idPresupuesto = @id";
+
         using (var sqliteConnection = new SqliteConnection(_cadenaDeConexion))
         {
             sqliteConnection.Open();
-            using (var command = new SqliteCommand(query, sqliteConnection))
+
+            using (var transaction = sqliteConnection.BeginTransaction())
             {
-                command.Parameters.AddWithValue("@id", id);
-                rowsAffected = command.ExecuteNonQuery();
-                sqliteConnection.Close();
+                try
+                {
+                    // Eliminar los detalles primero
+                    using (var detalleCommand = new SqliteCommand(deleteDetalleQuery, sqliteConnection, transaction))
+                    {
+                        detalleCommand.Parameters.AddWithValue("@id", id);
+                        detalleCommand.ExecuteNonQuery();
+                    }
+
+                    // Eliminar el presupuesto principal
+                    using (var presupuestoCommand = new SqliteCommand(deletePresupuestoQuery, sqliteConnection, transaction))
+                    {
+                        presupuestoCommand.Parameters.AddWithValue("@id", id);
+                        rowsAffected = presupuestoCommand.ExecuteNonQuery();
+                    }
+
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+                finally
+                {
+                    sqliteConnection.Close();
+                }
             }
-            sqliteConnection.Close();
         }
-        return rowsAffected==1;
+        return rowsAffected == 1;
     }
   }
 }
