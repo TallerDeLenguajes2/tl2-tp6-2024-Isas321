@@ -49,6 +49,13 @@ namespace tl2_tp6_2024_Isas321.Models
         // Constructor sin parámetros (necesario para frameworks como Entity Framework)
         public Presupuesto() { }
 
+        // Constructor para crear un presupuesto básico
+        public Presupuesto(string nombreDestinatario, DateTime fechaCreacion)
+        {
+            NombreDestinatario = nombreDestinatario;
+            FechaCreacion = fechaCreacion;
+        }
+
         // Constructor completo
         public Presupuesto(int idPresupuesto, string nombreDestinatario, DateTime fechaCreacion, List<PresupuestoDetalle> detalles)
         {
@@ -56,16 +63,6 @@ namespace tl2_tp6_2024_Isas321.Models
             NombreDestinatario = nombreDestinatario ?? throw new ArgumentNullException(nameof(nombreDestinatario));
             FechaCreacion = fechaCreacion;
             Detalles = detalles ?? throw new ArgumentNullException(nameof(detalles));
-        }
-
-        // Constructor para crear un presupuesto básico
-        public Presupuesto(string nombreDestinatario, DateTime fechaCreacion)
-        {
-            if (string.IsNullOrWhiteSpace(nombreDestinatario))
-                throw new ArgumentException("El nombre del destinatario no puede estar vacío.", nameof(nombreDestinatario));
-
-            NombreDestinatario = nombreDestinatario;
-            FechaCreacion = fechaCreacion;
         }
     }
 }
