@@ -48,8 +48,8 @@
                     </td>
                     <td>
                         <!-- Botón para cargar productos si no hay detalles -->
-                        @if (presupuesto.Detalles == null || !presupuesto.Detalles.Any())
-                        {
+                        @* @if (presupuesto.Detalles == null || !presupuesto.Detalles.Any())
+                        { *@
                             <a asp-controller="Presupuesto" 
                                 asp-action="AgregarProducto" 
                                 asp-route-idPresupuesto="@presupuesto.IdPresupuesto" 
@@ -57,14 +57,14 @@
                                     Cargar Productos
                             </a>
 
-                            }
-                             else{
+                            @* }
+                             else{ *@
                             <a class="btn btn-warning" asp-controller="Presupuesto" 
                                 asp-action="Editar" 
                                 asp-route-id="@presupuesto.IdPresupuesto">
                                     Editar
                             </a>
-                        }
+                        @* } *@
 
                         <!-- Botón para eliminar -->
                         <form method="post" 

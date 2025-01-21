@@ -194,5 +194,68 @@ namespace tl2_tp6_2024_Isas321.Controllers
         {
             return View();
         }
+
+
+        public IActionResult Editar(int id)
+        {
+            if (id <= 0)
+            {
+                TempData["Error"] = "El ID no es válido.";
+                return RedirectToAction("Index");
+            }
+
+            try
+            {
+                var presupuesto = _presupuestoRepositorio.ObtenerPorId(id);
+
+                if (presupuesto == null)
+                {
+                    TempData["Error"] = $"No se encontró un presupuesto con el ID {id}.";
+                    return RedirectToAction("Index");
+                }
+
+                return View(presupuesto); // Cargar la vista con los datos del presupuesto
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error al obtener el presupuesto con ID {id}: {ex.Message}");
+                TempData["Error"] = "Ocurrió un error al cargar el presupuesto.";
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult Editar(int id, Presupuesto presupuestoEditado)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Los datos ingresados no son válidos.";
+                return View(presupuestoEditado);
+            }
+
+            try
+            {
+                var actualizado = _presupuestoRepositorio.EditarPresupuesto(
+                    id,
+                    presupuestoEditado.NombreDestinatario,
+                    presupuestoEditado.FechaCreacion
+                );
+
+                if (!actualizado)
+                {
+                    TempData["Error"] = $"No se pudo actualizar el presupuesto con ID {id}.";
+                    return View(presupuestoEditado);
+                }
+
+                TempData["Success"] = $"El presupuesto con ID {id} fue actualizado correctamente.";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error al actualizar el presupuesto con ID {id}: {ex.Message}");
+                TempData["Error"] = "Ocurrió un error al actualizar el presupuesto.";
+                return View(presupuestoEditado);
+            }
+        }
     }
 }

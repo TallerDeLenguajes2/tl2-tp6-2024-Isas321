@@ -299,5 +299,44 @@ namespace tl2_tp6_2024_Isas321.Repositorios
         }
         return rowsAffected == 1;
     }
+
+
+    // Método para editar un presupuesto existente
+    public bool EditarPresupuesto(int idPresupuesto, string nuevoNombreDestinatario, DateTime nuevaFechaCreacion)
+    {
+        var _cadenaDeConexion = "Data Source = db/Tienda.db";
+        if (string.IsNullOrEmpty(nuevoNombreDestinatario))
+            throw new ArgumentException("El nombre del destinatario no puede estar vacío.", nameof(nuevoNombreDestinatario));
+
+        bool resultado = false;
+
+        var consulta = @"UPDATE Presupuestos 
+                            SET NombreDestinatario = @nuevoNombreDestinatario, 
+                                FechaCreacion = @nuevaFechaCreacion
+                            WHERE IdPresupuesto = @idPresupuesto;";
+
+        using (var sqliteConnection = new SqliteConnection(_cadenaDeConexion))
+        {
+            sqliteConnection.Open();
+
+            using (var command = new SqliteCommand(consulta, sqliteConnection))
+            {
+                // Agregar parámetros a la consulta
+                command.Parameters.AddWithValue("@idPresupuesto", idPresupuesto);
+                command.Parameters.AddWithValue("@nuevoNombreDestinatario", nuevoNombreDestinatario);
+                command.Parameters.AddWithValue("@nuevaFechaCreacion", nuevaFechaCreacion);
+
+                // Ejecutar la consulta
+                int rowsAffected = command.ExecuteNonQuery();
+
+                // Si se afectó alguna fila, el resultado es exitoso
+                resultado = rowsAffected > 0;
+            }
+
+            sqliteConnection.Close();
+        }
+
+        return resultado;
+    }
   }
 }
