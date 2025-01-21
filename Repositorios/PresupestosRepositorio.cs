@@ -8,15 +8,11 @@ namespace tl2_tp6_2024_Isas321.Repositorios
             {
         public int CrearPresupuestoVacio(Presupuesto presupuesto)
         {
-            // Ruta a la base de datos SQLite
             var _cadenaDeConexion = "Data Source=db/Tienda.db";
-
-            // Validación básica de los datos de entrada
             if (string.IsNullOrWhiteSpace(presupuesto.NombreDestinatario))
             {
                 throw new ArgumentException("El nombre del destinatario no puede estar vacío.", nameof(presupuesto.NombreDestinatario));
             }
-
             if (presupuesto.FechaCreacion == default)
             {
                 throw new ArgumentException("La fecha de creación no es válida.", nameof(presupuesto.FechaCreacion));
@@ -30,7 +26,6 @@ namespace tl2_tp6_2024_Isas321.Repositorios
                 {
                     sqlitecon.Open();
 
-                    // Consulta SQL para insertar y obtener el ID del nuevo presupuesto
                     var consultaPresupuesto = @"
                         INSERT INTO Presupuestos (NombreDestinatario, FechaCreacion) 
                         VALUES (@NombreDestinatario, @FechaCreacion);
@@ -38,12 +33,10 @@ namespace tl2_tp6_2024_Isas321.Repositorios
 
                     using (var commandPresupuesto = new SqliteCommand(consultaPresupuesto, sqlitecon))
                     {
-                        // Asignar valores a los parámetros
                         commandPresupuesto.Parameters.AddWithValue("@NombreDestinatario", presupuesto.NombreDestinatario);
-                        // commandPresupuesto.Parameters.AddWithValue("@FechaCreacion", presupuesto.FechaCreacion.Date);
+                    
                         commandPresupuesto.Parameters.AddWithValue("@FechaCreacion", presupuesto.FechaCreacion.ToString("yyyy-MM-dd"));
 
-                        // Ejecutar la consulta y obtener el ID generado
                         object resultado = commandPresupuesto.ExecuteScalar();
                         if (resultado != null && int.TryParse(resultado.ToString(), out int id))
                         {
@@ -279,14 +272,12 @@ namespace tl2_tp6_2024_Isas321.Repositorios
             {
                 try
                 {
-                    // Eliminar los detalles primero
                     using (var detalleCommand = new SqliteCommand(deleteDetalleQuery, sqliteConnection, transaction))
                     {
                         detalleCommand.Parameters.AddWithValue("@id", id);
                         detalleCommand.ExecuteNonQuery();
                     }
 
-                    // Eliminar el presupuesto principal
                     using (var presupuestoCommand = new SqliteCommand(deletePresupuestoQuery, sqliteConnection, transaction))
                     {
                         presupuestoCommand.Parameters.AddWithValue("@id", id);

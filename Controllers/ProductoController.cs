@@ -66,7 +66,7 @@ public class ProductoController : Controller
         var producto = _productoRepositorio.GetProductoPorId(id);
         if (producto == null)
         {
-            return NotFound(); // Maneja el caso donde el producto no exista
+            return NotFound(); 
         }
         return View(producto);
     }
@@ -87,6 +87,6 @@ public class ProductoController : Controller
             return View(producto);
         }
 
-        return RedirectToAction("Index"); // Redirige a la lista de productos
+        return RedirectToAction("Index"); 
     }
 }

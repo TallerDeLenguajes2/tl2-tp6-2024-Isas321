@@ -87,23 +87,6 @@ namespace tl2_tp6_2024_Isas321.Repositorios
             }
         }
 
-        // public bool Remove(int id)
-        // {
-        //     int rowsAffected;
-        //     var connectionString = "Data Source=db/Tienda.db";
-        //     using (var sqliteConnection = new SqliteConnection(connectionString))
-        //     {
-        //         const string query = "DELETE FROM Productos WHERE idProducto = @id";
-        //         using (var command = new SqliteCommand(query, sqliteConnection))
-        //         {
-        //             sqliteConnection.Open();
-        //             command.Parameters.AddWithValue("@id", id);
-        //             rowsAffected = command.ExecuteNonQuery();
-        //             sqliteConnection.Close();
-        //             return rowsAffected==1;
-        //         }
-        //     }
-        // }
         public bool Remove(int id)
         {
             try
@@ -150,7 +133,6 @@ namespace tl2_tp6_2024_Isas321.Repositorios
                 
                 using (var command = new SqliteCommand(query, sqliteConnection))
                 {
-                    // Agregar el parámetro de ID para evitar inyección SQL
                     command.Parameters.AddWithValue("@descripcion", descripcion);
                     command.Parameters.AddWithValue("@precio", precio);
                     command.Parameters.AddWithValue("@id", id);
