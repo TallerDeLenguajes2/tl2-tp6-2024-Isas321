@@ -1,0 +1,20 @@
+@{
+    ViewData["Title"] = "Agregar productos al Presupuesto";
+}
+
+@model tl2_tp6_2024_Isas321.Models.Presupuesto
+
+<h2>Agregar Producto al Presupuesto</h2>
+<form method="post" asp-action="AgregarProducto">
+    <input type="hidden" name="idPresupuesto" value="@ViewBag.IdPresupuesto" />
+    <label for="idProducto">Producto:</label>
+    <select name="idProducto" id="idProducto" required>
+        @foreach (var producto in ViewBag.Productos)
+        {
+            <option value="@producto.IdProducto">@producto.Descripcion</option>
+        }
+    </select>
+    <label for="cantidad">Cantidad:</label>
+    <input type="number" name="cantidad" id="cantidad" min="1" required />
+    <button type="submit">Agregar</button>
+</form>

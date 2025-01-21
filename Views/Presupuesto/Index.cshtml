@@ -29,17 +29,43 @@
                     <td>@presupuesto.FechaCreacion.ToString("dd/MM/yyyy")</td>
                     <td>
                         <!-- Mostrar detalles como una lista anidada -->
-                        <ul>
-                            @foreach (var detalle in presupuesto.Detalles)
-                            {
-                                <li>
-                                    Producto: @detalle.Producto.Descripcion, 
-                                    Cantidad: @detalle.Cantidad
-                                </li>
-                            }
-                        </ul>
+                        @if (presupuesto.Detalles != null && presupuesto.Detalles.Any())
+                        {
+                            <ul>
+                                @foreach (var detalle in presupuesto.Detalles)
+                                {
+                                    <li>
+                                        Producto: @detalle.Producto.Descripcion, 
+                                        Cantidad: @detalle.Cantidad
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>No hay productos asignados.</span>
+                        }
                     </td>
                     <td>
+                        <!-- Botón para cargar productos si no hay detalles -->
+                        @if (presupuesto.Detalles == null || !presupuesto.Detalles.Any())
+                        {
+                            <a asp-controller="Presupuesto" 
+                                asp-action="AgregarProducto" 
+                                asp-route-idPresupuesto="@presupuesto.IdPresupuesto" 
+                                class="btn btn-success">
+                                    Cargar Productos
+                            </a>
+
+                            }
+                             else{
+                            <a class="btn btn-warning" asp-controller="Presupuesto" 
+                                asp-action="Editar" 
+                                asp-route-id="@presupuesto.IdPresupuesto">
+                                    Editar
+                            </a>
+                        }
+
                         <!-- Botón para eliminar -->
                         <form method="post" 
                               action="@Url.Action("Eliminar", "Presupuesto", new { id = presupuesto.IdPresupuesto })"
