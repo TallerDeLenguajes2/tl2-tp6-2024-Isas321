@@ -1,10 +1,5 @@
 namespace tl2_tp6_2024_Isas321.Models
 {
-    // public class ProductoCreateModel
-    // {
-    //     public string Descripcion { get; set; }
-    //     public int Precio { get; set; }
-    // }
     public class Producto
     {
         private int idProducto;
