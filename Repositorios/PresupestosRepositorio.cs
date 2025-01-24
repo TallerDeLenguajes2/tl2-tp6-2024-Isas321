@@ -5,13 +5,13 @@ using tl2_tp6_2024_Isas321.Models;
 namespace tl2_tp6_2024_Isas321.Repositorios
 {
     public class PresupuestoRepositorio : IPresupuestoRepositorio
-            {
+    {
         public int CrearPresupuestoVacio(Presupuesto presupuesto)
         {
             var _cadenaDeConexion = "Data Source=db/Tienda.db";
-            if (string.IsNullOrWhiteSpace(presupuesto.NombreDestinatario))
+            if (presupuesto.Cliente == null)
             {
-                throw new ArgumentException("El nombre del destinatario no puede estar vacío.", nameof(presupuesto.NombreDestinatario));
+                throw new ArgumentException("El presupuesto debe estar asociado a un cliente.", nameof(presupuesto.Cliente));
             }
             if (presupuesto.FechaCreacion == default)
             {
@@ -26,17 +26,19 @@ namespace tl2_tp6_2024_Isas321.Repositorios
                 {
                     sqlitecon.Open();
 
+                    // Consulta para insertar el presupuesto
                     var consultaPresupuesto = @"
-                        INSERT INTO Presupuestos (NombreDestinatario, FechaCreacion) 
-                        VALUES (@NombreDestinatario, @FechaCreacion);
+                        INSERT INTO Presupuestos (ClienteId, FechaCreacion) 
+                        VALUES (@ClienteId, @FechaCreacion);
                         SELECT last_insert_rowid();";
 
                     using (var commandPresupuesto = new SqliteCommand(consultaPresupuesto, sqlitecon))
                     {
-                        commandPresupuesto.Parameters.AddWithValue("@NombreDestinatario", presupuesto.NombreDestinatario);
-                    
-                        commandPresupuesto.Parameters.AddWithValue("@FechaCreacion", presupuesto.FechaCreacion.ToString("yyyy-MM-dd"));
+                        // Usar ClienteId en lugar de NombreDestinatario
+                        commandPresupuesto.Parameters.AddWithValue("@ClienteId", presupuesto.Cliente.ClienteId);
+                        commandPresupuesto.Parameters.AddWithValue("@FechaCreacion", presupuesto.FechaCreacion);
 
+                        // Ejecutar la consulta y obtener el id del presupuesto insertado
                         object resultado = commandPresupuesto.ExecuteScalar();
                         if (resultado != null && int.TryParse(resultado.ToString(), out int id))
                         {
@@ -66,24 +68,41 @@ namespace tl2_tp6_2024_Isas321.Repositorios
 
         public List<Presupuesto> ObtenerTablaPresupuestos()
         {
-            var _cadenaDeConexion = "Data Source = db/Tienda.db";
+            var _cadenaDeConexion = "Data Source=db/Tienda.db";
             var presupuestos = new List<Presupuesto>();
-            var consulta = @"SELECT idPresupuesto, NombreDestinatario, FechaCreacion
-                            FROM Presupuestos";
+            var consulta = @"SELECT Pres.idPresupuesto, Pres.FechaCreacion, 
+                                    Cli.ClienteId, Cli.Nombre AS NombreCliente, Cli.Email, Cli.Telefono
+                            FROM Presupuestos Pres
+                            INNER JOIN Clientes Cli ON Pres.ClienteId = Cli.ClienteId";
 
             using (var sqlitecon = new SqliteConnection(_cadenaDeConexion))
             {
                 sqlitecon.Open();
-                SqliteCommand command = new SqliteCommand(consulta, sqlitecon);
-                using (var reader = command.ExecuteReader())
+                using (var command = new SqliteCommand(consulta, sqlitecon))
                 {
-                    while (reader.Read())
+                    using (var reader = command.ExecuteReader())
                     {
-                        int idPresupuesto = Convert.ToInt32(reader["idPresupuesto"]);
-                        string nombreDestinatario = Convert.ToString(reader["NombreDestinatario"]);
-                        DateTime fechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]).Date;
-                        var presupuesto = new Presupuesto(idPresupuesto, nombreDestinatario, fechaCreacion, new List<PresupuestoDetalle>());
-                        presupuestos.Add(presupuesto);
+                        while (reader.Read())
+                        {
+                            // Datos del presupuesto
+                            int idPresupuesto = Convert.ToInt32(reader["idPresupuesto"]);
+                            DateTime fechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]).Date;
+
+                            // Datos del cliente
+                            int clienteId = Convert.ToInt32(reader["ClienteId"]);
+                            string nombreCliente = Convert.ToString(reader["NombreCliente"]);
+                            string email = Convert.ToString(reader["Email"]);
+                            string telefono = Convert.ToString(reader["Telefono"]);
+
+                            // Crear el objeto Cliente
+                            Cliente cliente = new Cliente(clienteId, nombreCliente, email, telefono);
+
+                            // Crear el objeto Presupuesto
+                            var presupuesto = new Presupuesto(idPresupuesto, cliente, fechaCreacion, new List<PresupuestoDetalle>());
+
+                            // Agregar el presupuesto a la lista
+                            presupuestos.Add(presupuesto);
+                        }
                     }
                 }
                 sqlitecon.Close();
@@ -92,89 +111,122 @@ namespace tl2_tp6_2024_Isas321.Repositorios
         }
 
 
+
         public Presupuesto ObtenerTablaPresupuestosPorId(int id)
         {
-            var _cadenaDeConexion = "Data Source = db/Tienda.db";
+            var _cadenaDeConexion = "Data Source=db/Tienda.db";
             Presupuesto presupuesto = null;
-            var consulta = @"SELECT idPresupuesto, NombreDestinatario, FechaCreacion
-                            FROM Presupuestos
-                            WHERE idPresupuesto = @id";
+
+            // Nueva consulta para incluir ClienteId y obtener datos del cliente relacionado
+            var consulta = @"SELECT p.idPresupuesto, p.ClienteId, p.FechaCreacion, 
+                                    c.Nombre AS NombreCliente, c.Email, c.Telefono
+                            FROM Presupuestos p
+                            INNER JOIN Clientes c ON p.ClienteId = c.ClienteId
+                            WHERE p.idPresupuesto = @id";
 
             using (var sqlitecon = new SqliteConnection(_cadenaDeConexion))
             {
                 sqlitecon.Open();
-                SqliteCommand command = new SqliteCommand(consulta, sqlitecon);
-                command.Parameters.AddWithValue("@id", id);
-                using (var reader = command.ExecuteReader())
+                using (var command = new SqliteCommand(consulta, sqlitecon))
                 {
-                    while (reader.Read())
+                    command.Parameters.AddWithValue("@id", id);
+
+                    using (var reader = command.ExecuteReader())
                     {
-                        int idPresupuesto = Convert.ToInt32(reader["idPresupuesto"]);
-                        string nombreDestinatario = Convert.ToString(reader["NombreDestinatario"]);
-                        DateTime fechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]).Date;
-                        presupuesto = new Presupuesto(idPresupuesto, nombreDestinatario, fechaCreacion, new List<PresupuestoDetalle>());
+                        if (reader.Read())
+                        {
+                            // Datos del presupuesto
+                            int idPresupuesto = Convert.ToInt32(reader["idPresupuesto"]);
+                            DateTime fechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]).Date;
+
+                            // Datos del cliente relacionado
+                            int clienteId = Convert.ToInt32(reader["ClienteId"]);
+                            string nombreCliente = Convert.ToString(reader["NombreCliente"]);
+                            string email = Convert.ToString(reader["Email"]);
+                            string telefono = Convert.ToString(reader["Telefono"]);
+
+                            // Crear instancia de Cliente
+                            Cliente cliente = new Cliente(clienteId, nombreCliente, email, telefono);
+
+                            // Crear instancia de Presupuesto con el cliente
+                            presupuesto = new Presupuesto(idPresupuesto, cliente, fechaCreacion, new List<PresupuestoDetalle>());
+                        }
                     }
                 }
                 sqlitecon.Close();
             }
             return presupuesto;
         }
+
+                    
             
-    
 
 
         public List<Presupuesto> ObtenerPresupuestoCompleto()
         {
-            var _cadenaDeConexion = "Data Source = db/Tienda.db";
+            var _cadenaDeConexion = "Data Source=db/Tienda.db";
             var presupuestos = new List<Presupuesto>();
-            var consulta = @"SELECT Pres.idPresupuesto, Pres.NombreDestinatario, Pres.FechaCreacion, 
-                                    Prod.idProducto, Prod.Descripcion, Prod.Precio, PresD.Cantidad
+            var consulta = @"SELECT Pres.idPresupuesto, Pres.ClienteId, Pres.FechaCreacion,
+                                    Prod.idProducto, Prod.Descripcion, Prod.Precio, PresD.Cantidad,
+                                    Cli.Nombre AS NombreCliente, Cli.Email, Cli.Telefono
                             FROM Presupuestos Pres
                             LEFT JOIN PresupuestosDetalle PresD ON Pres.idPresupuesto = PresD.idPresupuesto
-                            LEFT JOIN Productos Prod ON Prod.idProducto = PresD.idProducto";
-
+                            LEFT JOIN Productos Prod ON Prod.idProducto = PresD.idProducto
+                            INNER JOIN Clientes Cli ON Pres.ClienteId = Cli.ClienteId";
 
             using (var sqlitecon = new SqliteConnection(_cadenaDeConexion))
             {
                 sqlitecon.Open();
-                SqliteCommand command = new SqliteCommand(consulta, sqlitecon);
-                using (var reader = command.ExecuteReader())
+                using (var command = new SqliteCommand(consulta, sqlitecon))
                 {
-                    var presupuestoDict = new Dictionary<int, Presupuesto>();
-
-                    while (reader.Read())
+                    using (var reader = command.ExecuteReader())
                     {
-                        int idPresupuesto = Convert.ToInt32(reader["idPresupuesto"]);
-                        string nombreDestinatario = Convert.ToString(reader["NombreDestinatario"]);
-                        DateTime fechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]).Date;
+                        var presupuestoDict = new Dictionary<int, Presupuesto>();
 
-                        int? idProducto = reader["idProducto"] != DBNull.Value ? Convert.ToInt32(reader["idProducto"]) : (int?)null;
-                        string descripcion = reader["Descripcion"] != DBNull.Value ? Convert.ToString(reader["Descripcion"]) : null;
-                        double? precio = reader["Precio"] != DBNull.Value ? Convert.ToDouble(reader["Precio"]) : (double?)null;
-                        int? cantidad = reader["Cantidad"] != DBNull.Value ? Convert.ToInt32(reader["Cantidad"]) : (int?)null;
-
-                        Producto producto = null;
-                        PresupuestoDetalle presupuestoDetalle = null;
-
-                        if (idProducto.HasValue)
+                        while (reader.Read())
                         {
-                            producto = new Producto(idProducto.Value, descripcion, precio ?? 0);
-                            presupuestoDetalle = new PresupuestoDetalle(producto, cantidad ?? 0);
+                            // Datos del presupuesto
+                            int idPresupuesto = Convert.ToInt32(reader["idPresupuesto"]);
+                            DateTime fechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]).Date;
+
+                            // Datos del cliente
+                            int clienteId = Convert.ToInt32(reader["ClienteId"]);
+                            string nombreCliente = Convert.ToString(reader["NombreCliente"]);
+                            string email = Convert.ToString(reader["Email"]);
+                            string telefono = Convert.ToString(reader["Telefono"]);
+                            // Crear instancia de Cliente
+                            Cliente cliente = new Cliente(clienteId, nombreCliente, email, telefono);
+
+                            // Datos del producto y detalle
+                            int? idProducto = reader["idProducto"] != DBNull.Value ? Convert.ToInt32(reader["idProducto"]) : (int?)null;
+                            string descripcion = reader["Descripcion"] != DBNull.Value ? Convert.ToString(reader["Descripcion"]) : null;
+                            double? precio = reader["Precio"] != DBNull.Value ? Convert.ToDouble(reader["Precio"]) : (double?)null;
+                            int? cantidad = reader["Cantidad"] != DBNull.Value ? Convert.ToInt32(reader["Cantidad"]) : (int?)null;
+
+                            Producto producto = null;
+                            PresupuestoDetalle presupuestoDetalle = null;
+
+                            if (idProducto.HasValue)
+                            {
+                                producto = new Producto(idProducto.Value, descripcion, precio ?? 0);
+                                presupuestoDetalle = new PresupuestoDetalle(producto, cantidad ?? 0);
+                            }
+
+                            // Verificar si el presupuesto ya está en el diccionario
+                            if (!presupuestoDict.ContainsKey(idPresupuesto))
+                            {
+                                presupuestoDict[idPresupuesto] = new Presupuesto(idPresupuesto, cliente,fechaCreacion , new List<PresupuestoDetalle>());
+                            }
+
+                            // Agregar el detalle si existe
+                            if (presupuestoDetalle != null)
+                            {
+                                presupuestoDict[idPresupuesto].Detalles.Add(presupuestoDetalle);
+                            }
                         }
 
-                        // Verificar si el presupuesto ya está en el diccionario
-                        if (!presupuestoDict.ContainsKey(idPresupuesto))
-                        {
-                            presupuestoDict[idPresupuesto] = new Presupuesto(idPresupuesto, nombreDestinatario, fechaCreacion, new List<PresupuestoDetalle>());
-                        }
-
-                        if (presupuestoDetalle != null)
-                        {
-                            presupuestoDict[idPresupuesto].Detalles.Add(presupuestoDetalle);
-                        }
+                        presupuestos = presupuestoDict.Values.ToList();
                     }
-
-                    presupuestos = presupuestoDict.Values.ToList();
                 }
                 sqlitecon.Close();
             }
@@ -182,54 +234,74 @@ namespace tl2_tp6_2024_Isas321.Repositorios
         }
 
 
+public Presupuesto ObtenerPorId(int idPresupuesto)
+{
+    var _cadenaDeConexion = "Data Source=db/Tienda.db";
+    Presupuesto presupuesto = null;
 
-        public Presupuesto ObtenerPorId(int idPresupuesto)
+    var consulta = @"
+        SELECT Pres.idPresupuesto, Pres.FechaCreacion, 
+               Cli.ClienteId, Cli.Nombre AS NombreCliente, Cli.Email, Cli.Telefono,
+               Prod.idProducto, Prod.Descripcion, Prod.Precio, PresD.Cantidad
+        FROM Presupuestos Pres
+        LEFT JOIN Clientes Cli ON Pres.ClienteId = Cli.ClienteId
+        LEFT JOIN PresupuestosDetalle PresD ON Pres.idPresupuesto = PresD.idPresupuesto
+        LEFT JOIN Productos Prod ON Prod.idProducto = PresD.idProducto
+        WHERE Pres.idPresupuesto = @idPresupuesto";
+
+    using (var sqlitecon = new SqliteConnection(_cadenaDeConexion))
+    {
+        sqlitecon.Open();
+        using (var command = new SqliteCommand(consulta, sqlitecon))
         {
-            var _cadenaDeConexion = "Data Source = db/Tienda.db";
-            Presupuesto presupuesto = null;
-            var consulta = @"
-                SELECT Pres.idPresupuesto, Pres.NombreDestinatario, Pres.FechaCreacion, 
-                    Prod.idProducto, Prod.Descripcion, Prod.Precio, PresD.Cantidad
-                FROM Presupuestos Pres
-                INNER JOIN PresupuestosDetalle PresD ON Pres.idPresupuesto = PresD.idPresupuesto
-                INNER JOIN Productos Prod ON Prod.idProducto = PresD.idProducto
-                WHERE Pres.idPresupuesto = @idPresupuesto";
+            command.Parameters.AddWithValue("@idPresupuesto", idPresupuesto);
 
-            using (var sqlitecon = new SqliteConnection(_cadenaDeConexion))
+            using (var reader = command.ExecuteReader())
             {
-                sqlitecon.Open();
-                SqliteCommand command = new SqliteCommand(consulta, sqlitecon);
-                command.Parameters.AddWithValue("@idPresupuesto", idPresupuesto);
+                List<PresupuestoDetalle> detalles = new List<PresupuestoDetalle>();
 
-                using (var reader = command.ExecuteReader())
+                while (reader.Read())
                 {
-                    List<PresupuestoDetalle> detalles = new List<PresupuestoDetalle>();
-
-                    while (reader.Read())
+                    if (presupuesto == null)
                     {
-                        if (presupuesto == null)
+                        // Datos del cliente
+                        int? clienteId = reader["ClienteId"] != DBNull.Value ? Convert.ToInt32(reader["ClienteId"]) : (int?)null;
+                        Cliente cliente = null;
+                        if (clienteId.HasValue)
                         {
-                            string nombreDestinatario = Convert.ToString(reader["NombreDestinatario"]);
-                            DateTime fechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]);
-                            presupuesto = new Presupuesto(idPresupuesto, nombreDestinatario, fechaCreacion, detalles);
+                            string nombreCliente = Convert.ToString(reader["NombreCliente"]);
+                            string email = Convert.ToString(reader["Email"]);
+                            string telefono = Convert.ToString(reader["Telefono"]);
+                            cliente = new Cliente(clienteId.Value, nombreCliente, email, telefono);
+
                         }
 
+                        // Datos del presupuesto
+                        DateTime fechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]);
+                        presupuesto = new Presupuesto(idPresupuesto, cliente, fechaCreacion, detalles);
+                    }
+
+                    // Datos de los detalles del presupuesto
+                    if (reader["idProducto"] != DBNull.Value)
+                    {
                         int idProducto = Convert.ToInt32(reader["idProducto"]);
                         string descripcion = Convert.ToString(reader["Descripcion"]);
                         double precio = Convert.ToDouble(reader["Precio"]);
                         int cantidad = Convert.ToInt32(reader["Cantidad"]);
 
-                        var producto = new Producto(idProducto, descripcion, precio);
+                        var producto = new Producto(idPresupuesto, descripcion, precio);
+
                         var presupuestoDetalle = new PresupuestoDetalle(producto, cantidad);
 
                         detalles.Add(presupuestoDetalle);
                     }
                 }
-                sqlitecon.Close();
             }
-            return presupuesto;
         }
-
+        sqlitecon.Close();
+    }
+    return presupuesto;
+}
     public bool AgregarProductoYcantidad(int idPresupuesto, Producto producto, int cantidad)
     {
         var _cadenaDeConexion = "Data Source = db/Tienda.db";
@@ -302,18 +374,21 @@ namespace tl2_tp6_2024_Isas321.Repositorios
 
 
     // Método para editar un presupuesto existente
-    public bool EditarPresupuesto(int idPresupuesto, string nuevoNombreDestinatario, DateTime nuevaFechaCreacion)
+        // Método para editar un presupuesto existente
+    public bool EditarPresupuesto(int idPresupuesto, Cliente nuevoCliente, DateTime nuevaFechaCreacion)
     {
-        var _cadenaDeConexion = "Data Source = db/Tienda.db";
-        if (string.IsNullOrEmpty(nuevoNombreDestinatario))
-            throw new ArgumentException("El nombre del destinatario no puede estar vacío.", nameof(nuevoNombreDestinatario));
+        var _cadenaDeConexion = "Data Source=db/Tienda.db";
+
+        // Validar que el cliente no sea nulo
+        if (nuevoCliente == null || nuevoCliente.ClienteId <= 0)
+            throw new ArgumentException("El cliente especificado no es válido.", nameof(nuevoCliente));
 
         bool resultado = false;
 
         var consulta = @"UPDATE Presupuestos 
-                            SET NombreDestinatario = @nuevoNombreDestinatario, 
-                                FechaCreacion = @nuevaFechaCreacion
-                            WHERE IdPresupuesto = @idPresupuesto;";
+                        SET ClienteId = @clienteId, 
+                            FechaCreacion = @nuevaFechaCreacion
+                        WHERE IdPresupuesto = @idPresupuesto;";
 
         using (var sqliteConnection = new SqliteConnection(_cadenaDeConexion))
         {
@@ -323,7 +398,7 @@ namespace tl2_tp6_2024_Isas321.Repositorios
             {
                 // Agregar parámetros a la consulta
                 command.Parameters.AddWithValue("@idPresupuesto", idPresupuesto);
-                command.Parameters.AddWithValue("@nuevoNombreDestinatario", nuevoNombreDestinatario);
+                command.Parameters.AddWithValue("@clienteId", nuevoCliente.ClienteId);
                 command.Parameters.AddWithValue("@nuevaFechaCreacion", nuevaFechaCreacion);
 
                 // Ejecutar la consulta

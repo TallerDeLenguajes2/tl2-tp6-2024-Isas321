@@ -12,6 +12,6 @@ namespace tl2_tp6_2024_Isas321.Repositorios{
     public Presupuesto ObtenerPorId(int id);
     public bool AgregarProductoYcantidad(int idPresupuesto, Producto producto, int cantidad);
     public bool Eliminar(int id);
-    public bool EditarPresupuesto(int idPresupuesto, string nuevoNombreDestinatario, DateTime nuevaFechaCreacion);
+    public bool EditarPresupuesto(int idPresupuesto, Cliente nuevoCliente, DateTime nuevaFechaCreacion);
   }
 }

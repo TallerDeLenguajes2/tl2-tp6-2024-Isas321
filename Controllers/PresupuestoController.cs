@@ -237,7 +237,7 @@ namespace tl2_tp6_2024_Isas321.Controllers
             {
                 var actualizado = _presupuestoRepositorio.EditarPresupuesto(
                     id,
-                    presupuestoEditado.NombreDestinatario,
+                    presupuestoEditado.Cliente,
                     presupuestoEditado.FechaCreacion
                 );
 

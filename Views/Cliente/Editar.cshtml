@@ -1,0 +1,36 @@
+@{
+    ViewData["Title"] = "Editar Cliente";
+}
+
+@model tl2_tp6_2024_Isas321.Models.Cliente
+
+<h2>Editar Cliente</h2>
+
+<form asp-action="Editar" method="post">
+    <input type="hidden" asp-for="ClienteId" />
+
+    <div class="form-group">
+        <label asp-for="Nombre"></label>
+        <input type="text" asp-for="Nombre" class="form-control" />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input type="email" asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Telefono"></label>
+        <input type="text" asp-for="Telefono" class="form-control" />
+        <span asp-validation-for="Telefono" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

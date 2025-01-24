@@ -4,9 +4,10 @@ using tl2_tp6_2024_Isas321.Repositorios;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<IUserRepository, InMemoryUserRepository>(); 
-
 builder.Services.AddScoped<IProductoRepositorio, ProductoRepositorio>(); //Importante ponerlo
 builder.Services.AddScoped<IPresupuestoRepositorio, PresupuestoRepositorio>();
+builder.Services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
+
 
 
 // Habilitar servicios de sesiones

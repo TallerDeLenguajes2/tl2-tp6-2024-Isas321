@@ -4,7 +4,8 @@
 
 @model List<tl2_tp6_2024_Isas321.Models.Presupuesto>
 
-<a class="btn btn-primary" href="/Presupuesto/Crear">Crear</a>
+<a class="btn btn-primary" href="/Presupuesto/Crear">Crear Presupuesto</a>
+<a class="btn btn-success" href="/Cliente/Crear">Crear Cliente</a>
 
 <h2>Lista de Presupuestos</h2>
 
@@ -12,7 +13,7 @@
     <thead>
         <tr>
             <th hidden>ID</th>
-            <th>Nombre Destinatario</th>
+            <th>Cliente</th>
             <th>Fecha</th>
             <th>Detalles</th>
             <th>Acciones</th>
@@ -25,10 +26,18 @@
             {
                 <tr>
                     <td hidden>@presupuesto.IdPresupuesto</td>
-                    <td>@presupuesto.NombreDestinatario</td>
+                    <td>
+                        @if (presupuesto.Cliente != null)
+                        {
+                            @presupuesto.Cliente.Nombre
+                        }
+                        else
+                        {
+                            <span>Cliente no asignado</span>
+                        }
+                    </td>
                     <td>@presupuesto.FechaCreacion.ToString("dd/MM/yyyy")</td>
                     <td>
-                        <!-- Mostrar detalles como una lista anidada -->
                         @if (presupuesto.Detalles != null && presupuesto.Detalles.Any())
                         {
                             <ul>
@@ -47,26 +56,23 @@
                         }
                     </td>
                     <td>
-                        <!-- Botón para cargar productos si no hay detalles -->
-                        @* @if (presupuesto.Detalles == null || !presupuesto.Detalles.Any())
-                        { *@
-                            <a asp-controller="Presupuesto" 
-                                asp-action="AgregarProducto" 
-                                asp-route-idPresupuesto="@presupuesto.IdPresupuesto" 
-                                class="btn btn-success">
-                                    Cargar Productos
-                            </a>
+                        <!-- Botón para asignar un cliente -->
+                        <a asp-controller="Presupuesto" 
+                           asp-action="AsignarCliente" 
+                           asp-route-id="@presupuesto.IdPresupuesto" 
+                           class="btn btn-info">
+                            Asignar Cliente
+                        </a>
+                        
+                        <!-- Botón para editar el presupuesto -->
+                        <a asp-controller="Presupuesto" 
+                           asp-action="Editar" 
+                           asp-route-id="@presupuesto.IdPresupuesto" 
+                           class="btn btn-warning">
+                            Editar
+                        </a>
 
-                            @* }
-                             else{ *@
-                            <a class="btn btn-warning" asp-controller="Presupuesto" 
-                                asp-action="Editar" 
-                                asp-route-id="@presupuesto.IdPresupuesto">
-                                    Editar
-                            </a>
-                        @* } *@
-
-                        <!-- Botón para eliminar -->
+                        <!-- Botón para eliminar el presupuesto -->
                         <form method="post" 
                               action="@Url.Action("Eliminar", "Presupuesto", new { id = presupuesto.IdPresupuesto })"
                               style="display:inline;">
