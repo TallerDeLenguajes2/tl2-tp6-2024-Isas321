@@ -111,47 +111,33 @@ namespace tl2_tp6_2024_Isas321.Controllers
             return View(cliente);
         }
 
+ // Acción GET para mostrar la vista de confirmación de eliminación
+        [HttpGet("Cliente/Eliminar/{id}")]
         public IActionResult Eliminar(int id)
         {
-            try
+            var cliente = _clienteRepositorio.ObtenerPorId(id);
+            if (cliente == null)
             {
-                var cliente = _clienteRepositorio.ObtenerPorId(id);
-                if (cliente == null)
-                {
-                    TempData["Error"] = "Cliente no encontrado.";
-                    return RedirectToAction("Index");
-                }
-
-                return View(cliente);
-            }
-            catch 
-            {
-                TempData["Error"] = "Error inesperado al buscar el cliente.";
+                TempData["Error"] = "Cliente no encontrado.";
                 return RedirectToAction("Index");
             }
+
+            return View(cliente);
         }
 
-        [HttpPost]
-        public IActionResult ConfirmarEliminacion(int id)
+        // Acción POST para realizar la eliminación del cliente
+        [HttpPost("Cliente/Eliminar/{id}")]
+        public IActionResult EliminarConfirmado(int id)
         {
-            try
+            if (_clienteRepositorio.Eliminar(id))
             {
-                var resultado = _clienteRepositorio.Eliminar(id);
-                if (resultado)
-                {
-                    TempData["Success"] = "Cliente eliminado correctamente.";
-                }
-                else
-                {
-                    TempData["Error"] = "Ocurrió un error al eliminar el cliente.";
-                }
+                return RedirectToAction("Index");
             }
-            catch 
+            else
             {
-                TempData["Error"] = "Error inesperado al eliminar el cliente.";
+                ViewBag.MensajeError = "No se pudo eliminar el cliente. Serás redirigido en 5 segundos.";
+                return View("ErrorEliminar");
             }
-
-            return RedirectToAction("Index");
         }
     }
 }

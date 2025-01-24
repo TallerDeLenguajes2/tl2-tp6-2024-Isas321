@@ -1,0 +1,13 @@
+@{
+    Layout = "_Layout";
+}
+
+<h2>Error al eliminar el cliente</h2>
+<p>@ViewBag.MensajeError</p>
+<p>Redirigiendo en 5 segundos...</p>
+
+<script>
+    setTimeout(function () {
+        window.location.href = '@Url.Action("Index", "Cliente")';
+    }, 5000);
+</script>

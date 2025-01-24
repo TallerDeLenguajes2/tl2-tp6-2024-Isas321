@@ -46,7 +46,7 @@ public class ProductoController : Controller
 
 
     [HttpPost("Producto/Eliminar/{id}")]
-    public IActionResult Eliminar(int id)
+    public IActionResult EliminarConfirmado(int id)
     {
         if (_productoRepositorio.Remove(id))
         {

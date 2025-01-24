@@ -1,0 +1,14 @@
+@model tl2_tp6_2024_Isas321.Models.Cliente
+
+<h1>Confirmar Eliminación</h1>
+<p>¿Estás seguro de que deseas eliminar al siguiente cliente?</p>
+<ul>
+    <li><strong>Nombre:</strong> @Model.Nombre</li>
+    <li><strong>Email:</strong> @Model.Email</li>
+    <li><strong>Teléfono:</strong> @Model.Telefono</li>
+</ul>
+
+<form asp-action="Eliminar" asp-route-id="@Model.ClienteId" method="post">
+    <button type="submit">Sí, eliminar</button>
+    <a asp-action="Index">Cancelar</a>
+</form>

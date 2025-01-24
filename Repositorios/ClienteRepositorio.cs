@@ -110,19 +110,30 @@ public class ClienteRepositorio : IClienteRepositorio
 
         public bool Eliminar(int id)
         {
-            var _cadenaDeConexion = "Data Source=db/Tienda.db";
-            using (var connection = new SqliteConnection(_cadenaDeConexion))
+            try
             {
-                connection.Open();
-                var query = "DELETE FROM Clientes WHERE ClienteId = @id";
-
-                using (var command = new SqliteCommand(query, connection))
+                int rowsAffected;
+                var connectionString = "Data Source=db/Tienda.db";
+                using (var connection = new SqliteConnection(connectionString))
                 {
-                    command.Parameters.AddWithValue("@id", id);
+                    const string query = "DELETE FROM Clientes WHERE ClienteId = @id";
 
-                    return command.ExecuteNonQuery() > 0;
+                    using (var command = new SqliteCommand(query, connection))
+                    {
+                        connection.Open();
+                        command.Parameters.AddWithValue("@id", id);
+                        rowsAffected = command.ExecuteNonQuery();
+                        return rowsAffected > 0;  // Si se eliminó al menos un registro
+                    }
                 }
             }
+            catch (SqliteException ex) when (ex.SqliteErrorCode == 19) // Error 19: Clave foránea
+            {
+                // Log o mensaje de error en caso de violación de clave foránea
+                Console.WriteLine("No se puede eliminar el cliente porque está relacionado con otros registros.");
+                return false;
+            }
         }
+
     }
 }
