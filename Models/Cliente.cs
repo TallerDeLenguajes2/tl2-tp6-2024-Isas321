@@ -18,6 +18,16 @@ namespace tl2_tp6_2024_Isas321.Models
         public string Telefono { get; set; }
 
 
+        public Cliente()
+        {
+
+        }
+        public Cliente(string nombre, string email, string telefono)
+        {
+            Nombre = nombre;
+            Email = email;
+            Telefono = telefono;
+        }
         public Cliente(int clienteId, string nombre, string email, string telefono)
         {
             ClienteId = clienteId;
@@ -26,6 +36,4 @@ namespace tl2_tp6_2024_Isas321.Models
             Telefono = telefono;
         }
     }
-
-
 }
