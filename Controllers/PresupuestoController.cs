@@ -119,31 +119,41 @@ namespace tl2_tp6_2024_Isas321.Controllers
             return View(viewModel); // Pasar el ViewModel a la vista
         }
 
+
+
         [HttpPost]
         public IActionResult Crear(CrearPresupuestoViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
-                // Si el modelo no es válido, recargar la lista de clientes
-                viewModel.Clientes = _clienteRepositorio.ObtenerTodos();
-                return View(viewModel); // Volver a la vista con el ViewModel
+                // Si el modelo no es válido, recarga los clientes para que la lista de clientes no se pierda
+                var clientes = _clienteRepositorio.ObtenerTodos();
+                ViewBag.Clientes = new SelectList(clientes, "IdCliente", "Nombre");
+                return View(viewModel);
             }
 
             try
             {
-                // Llamar al repositorio para crear el presupuesto
-                _presupuestoRepositorio.CrearPresupuestoVacio(viewModel);
+                // Crear el presupuesto utilizando los datos del ViewModel
+
+                var cliente = _clienteRepositorio.ObtenerPorId(viewModel.ClienteId);
+                var fecha = viewModel.FechaCreacion;
+
+                var presupuesto = new Presupuesto(0, cliente, fecha, new List<PresupuestoDetalle>());
+
+                // Guardar el presupuesto en la base de datos (este código depende de tu implementación)
+                _presupuestoRepositorio.CrearPresupuestoVacio(presupuesto);
+
                 TempData["Success"] = "Presupuesto creado correctamente.";
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error al crear el presupuesto: {ex.Message}");
-                TempData["Error"] = "Ocurrió un error al crear el presupuesto.";
-                viewModel.Clientes = _clienteRepositorio.ObtenerTodos(); // Recargar la lista de clientes en caso de error
-                return View(viewModel); // Volver a la vista con el ViewModel
+                TempData["Error"] = $"Error inesperado: {ex.Message}";
+                return View(viewModel);
             }
         }
+
         public IActionResult Detalle(int id)
         {
             if (id <= 0)

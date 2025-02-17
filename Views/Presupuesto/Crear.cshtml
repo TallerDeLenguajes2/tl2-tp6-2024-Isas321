@@ -1,4 +1,3 @@
-
 @model tl2_tp6_2024_Isas321.Models.CrearPresupuestoViewModel
 
 @{
@@ -9,15 +8,15 @@
 
 <form method="post" asp-action="Crear">
     <div class="form-group">
-        <label asp-for="ClienteSeleccionado">Cliente</label>
-        <select asp-for="ClienteSeleccionado" class="form-control" required>
+        <label asp-for="ClienteId">Cliente</label>
+        <select asp-for="ClienteId" class="form-control" required>
             <option value="">Seleccione un cliente</option>
             @foreach (var cliente in Model.Clientes)
             {
                 <option value="@cliente.ClienteId">@cliente.Nombre</option>
             }
         </select>
-        <span asp-validation-for="ClienteSeleccionado.ClienteId" class="text-danger"></span>
+        <span asp-validation-for="ClienteId" class="text-danger"></span>
     </div>
 
     <div class="form-group">

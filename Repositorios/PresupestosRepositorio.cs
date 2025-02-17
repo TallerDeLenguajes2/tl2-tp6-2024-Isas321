@@ -6,16 +6,16 @@ namespace tl2_tp6_2024_Isas321.Repositorios
 {
     public class PresupuestoRepositorio : IPresupuestoRepositorio
     {
-        public int CrearPresupuestoVacio(CrearPresupuestoViewModel viewModel)
+        public int CrearPresupuestoVacio(Presupuesto presupuesto)
         {
             // Validación del ViewModel
-            if (viewModel.ClienteSeleccionado == null)
+            if (presupuesto.Cliente == null)
             {
-                throw new ArgumentException("El presupuesto debe estar asociado a un cliente.", nameof(viewModel.ClienteSeleccionado));
+                throw new ArgumentException("El presupuesto debe estar asociado a un cliente.", nameof(presupuesto.Cliente));
             }
-            if (viewModel.FechaCreacion == default)
+            if (presupuesto.FechaCreacion == default)
             {
-                throw new ArgumentException("La fecha de creación no es válida.", nameof(viewModel.FechaCreacion));
+                throw new ArgumentException("La fecha de creación no es válida.", nameof(presupuesto.FechaCreacion));
             }
 
             int idPresupuesto = 0;
@@ -28,12 +28,6 @@ namespace tl2_tp6_2024_Isas321.Repositorios
                 using (var sqlitecon = new SqliteConnection(_cadenaDeConexion))
                 {
                     sqlitecon.Open();
-
-                    // Crear el presupuesto a partir del ViewModel
-                    var cliente = viewModel.ClienteSeleccionado;
-                    var fecha = viewModel.FechaCreacion;
-
-                    var presupuesto = new Presupuesto(idPresupuesto, cliente, fecha, new List<PresupuestoDetalle>());
 
                     // Consulta para insertar el presupuesto
                     var consultaPresupuesto = @"
