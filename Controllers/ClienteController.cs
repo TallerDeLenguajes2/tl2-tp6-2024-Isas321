@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using tl2_tp6_2024_Isas321.Models;
 using tl2_tp6_2024_Isas321.Repositorios;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
 
 namespace tl2_tp6_2024_Isas321.Controllers
 {
@@ -27,40 +29,51 @@ namespace tl2_tp6_2024_Isas321.Controllers
             }
         }
 
-
         public IActionResult Crear()
         {
+            var clientes = _clienteRepositorio.ObtenerTodos();
+
+            // Verifica que la lista no sea nula y pasa la lista de clientes a la vista
+            ViewBag.Clientes = clientes != null 
+                ? new SelectList(clientes, "IdCliente", "Nombre")
+                : new SelectList(new List<Cliente>(), "IdCliente", "Nombre");
+
             return View();
         }
 
-        [HttpPost]
-        public IActionResult Crear(Cliente cliente)
+    [HttpPost]
+    public IActionResult Crear(Cliente cliente)
+    {
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(cliente);
-            }
-
-            try
-            {
-                var resultado = _clienteRepositorio.Crear(cliente);
-                if (resultado)
-                {
-                    TempData["Success"] = "Cliente creado correctamente.";
-                    return RedirectToAction("Index");
-                }
-                else
-                {
-                    TempData["Error"] = "Ocurrió un error al crear el cliente.";
-                }
-            }
-            catch
-            {
-                TempData["Error"] = "Error inesperado al crear el cliente.";
-            }
-
+            var clientes1 = _clienteRepositorio.ObtenerTodos(); // Obtener lista de clientes
+            ViewBag.Clientes = new SelectList(clientes1, "IdCliente", "Nombre"); // Recargar lista para evitar error
             return View(cliente);
         }
+
+        try
+        {
+            var resultado = _clienteRepositorio.Crear(cliente);
+            if (resultado)
+            {
+                TempData["Success"] = "Cliente creado correctamente.";
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                TempData["Error"] = "Ocurrió un error al crear el cliente.";
+            }
+        }
+        catch
+        {
+            TempData["Error"] = "Error inesperado al crear el cliente.";
+        }
+
+        var clientes = _clienteRepositorio.ObtenerTodos(); // Obtener lista de clientes
+        ViewBag.Clientes = new SelectList(clientes, "IdCliente", "Nombre"); // Recargar lista
+        return View(cliente);
+    }
+
 
         public IActionResult Editar(int id)
         {

@@ -1,22 +1,35 @@
+
+@model tl2_tp6_2024_Isas321.Models.CrearPresupuestoViewModel
+
 @{
     ViewData["Title"] = "Crear Presupuesto";
 }
 
-@model tl2_tp6_2024_Isas321.Models.Presupuesto
+<h2>@ViewData["Title"]</h2>
 
-<h1>Crear Presupuesto</h1>
-
-<form asp-action="Crear" asp-controller="Presupuesto" method="post">
-    <div>
-        <label for="NombreDestinatario">Nombre del Destinatario:</label>
-        <input type="text" id="NombreDestinatario" name="NombreDestinatario" required />
+<form method="post" asp-action="Crear">
+    <div class="form-group">
+        <label asp-for="ClienteSeleccionado">Cliente</label>
+        <select asp-for="ClienteSeleccionado" class="form-control" required>
+            <option value="">Seleccione un cliente</option>
+            @foreach (var cliente in Model.Clientes)
+            {
+                <option value="@cliente.ClienteId">@cliente.Nombre</option>
+            }
+        </select>
+        <span asp-validation-for="ClienteSeleccionado.ClienteId" class="text-danger"></span>
     </div>
 
-    <div>
-        <label for="FechaCreacion">Fecha de Creación:</label>
-        <input type="date" id="FechaCreacion" name="FechaCreacion" required />
+    <div class="form-group">
+        <label asp-for="FechaCreacion">Fecha de Creación</label>
+        <input asp-for="FechaCreacion" type="date" class="form-control" required />
+        <span asp-validation-for="FechaCreacion" class="text-danger"></span>
     </div>
 
-    <button type="submit">Guardar Presupuesto</button>
+    <button type="submit" class="btn btn-primary">Crear Presupuesto</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
 </form>
 
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

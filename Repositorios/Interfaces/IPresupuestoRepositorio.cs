@@ -7,7 +7,7 @@ using tl2_tp6_2024_Isas321.Models;
 namespace tl2_tp6_2024_Isas321.Repositorios{
   public interface IPresupuestoRepositorio
   {
-    public int CrearPresupuestoVacio(Presupuesto presupuesto);
+     public int CrearPresupuestoVacio(CrearPresupuestoViewModel viewModel);
     public List<Presupuesto> ObtenerPresupuestoCompleto();
     public Presupuesto ObtenerPorId(int id);
     public bool AgregarProductoYcantidad(int idPresupuesto, Producto producto, int cantidad);

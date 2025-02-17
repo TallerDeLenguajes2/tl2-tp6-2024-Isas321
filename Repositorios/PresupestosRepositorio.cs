@@ -6,25 +6,34 @@ namespace tl2_tp6_2024_Isas321.Repositorios
 {
     public class PresupuestoRepositorio : IPresupuestoRepositorio
     {
-        public int CrearPresupuestoVacio(Presupuesto presupuesto)
+        public int CrearPresupuestoVacio(CrearPresupuestoViewModel viewModel)
         {
-            var _cadenaDeConexion = "Data Source=db/Tienda.db";
-            if (presupuesto.Cliente == null)
+            // Validación del ViewModel
+            if (viewModel.ClienteSeleccionado == null)
             {
-                throw new ArgumentException("El presupuesto debe estar asociado a un cliente.", nameof(presupuesto.Cliente));
+                throw new ArgumentException("El presupuesto debe estar asociado a un cliente.", nameof(viewModel.ClienteSeleccionado));
             }
-            if (presupuesto.FechaCreacion == default)
+            if (viewModel.FechaCreacion == default)
             {
-                throw new ArgumentException("La fecha de creación no es válida.", nameof(presupuesto.FechaCreacion));
+                throw new ArgumentException("La fecha de creación no es válida.", nameof(viewModel.FechaCreacion));
             }
 
             int idPresupuesto = 0;
 
             try
             {
+                // Aquí asumimos que la cadena de conexión ya está configurada correctamente
+                var _cadenaDeConexion = "Data Source=db/Tienda.db";
+
                 using (var sqlitecon = new SqliteConnection(_cadenaDeConexion))
                 {
                     sqlitecon.Open();
+
+                    // Crear el presupuesto a partir del ViewModel
+                    var cliente = viewModel.ClienteSeleccionado;
+                    var fecha = viewModel.FechaCreacion;
+
+                    var presupuesto = new Presupuesto(idPresupuesto, cliente, fecha, new List<PresupuestoDetalle>());
 
                     // Consulta para insertar el presupuesto
                     var consultaPresupuesto = @"
@@ -34,7 +43,7 @@ namespace tl2_tp6_2024_Isas321.Repositorios
 
                     using (var commandPresupuesto = new SqliteCommand(consultaPresupuesto, sqlitecon))
                     {
-                        // Usar ClienteId en lugar de NombreDestinatario
+                        // Usar ClienteId en lugar de Cliente
                         commandPresupuesto.Parameters.AddWithValue("@ClienteId", presupuesto.Cliente.ClienteId);
                         commandPresupuesto.Parameters.AddWithValue("@FechaCreacion", presupuesto.FechaCreacion);
 

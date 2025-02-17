@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -12,16 +13,19 @@ namespace tl2_tp6_2024_Isas321.Controllers
         private readonly ILogger<PresupuestoController> _logger;
         private readonly IPresupuestoRepositorio _presupuestoRepositorio;
         private readonly IProductoRepositorio _productoRepositorio;
+        private readonly IClienteRepositorio _clienteRepositorio;
 
         // Constructor para inyectar logger, repositorio de presupuestos y productos
         public PresupuestoController(
             ILogger<PresupuestoController> logger,
             IPresupuestoRepositorio presupuestoRepositorio,
-            IProductoRepositorio productoRepositorio)
+            IProductoRepositorio productoRepositorio,
+            IClienteRepositorio clienteRepositorio)
         {
             _logger = logger;
             _presupuestoRepositorio = presupuestoRepositorio;
             _productoRepositorio = productoRepositorio;
+            _clienteRepositorio = clienteRepositorio;
         }
 
 
@@ -103,24 +107,32 @@ namespace tl2_tp6_2024_Isas321.Controllers
                 return RedirectToAction("Error");
             }
         }
-
         [HttpGet]
         public IActionResult Crear()
         {
-            return View();
+            // Crear el ViewModel
+            var viewModel = new CrearPresupuestoViewModel
+            {
+                Clientes = _clienteRepositorio.ObtenerTodos() // Obtener lista de clientes
+            };
+
+            return View(viewModel); // Pasar el ViewModel a la vista
         }
 
         [HttpPost]
-        public IActionResult Crear(Presupuesto presupuesto)
+        public IActionResult Crear(CrearPresupuestoViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
-                return View(presupuesto);
+                // Si el modelo no es válido, recargar la lista de clientes
+                viewModel.Clientes = _clienteRepositorio.ObtenerTodos();
+                return View(viewModel); // Volver a la vista con el ViewModel
             }
 
             try
             {
-                _presupuestoRepositorio.CrearPresupuestoVacio(presupuesto);
+                // Llamar al repositorio para crear el presupuesto
+                _presupuestoRepositorio.CrearPresupuestoVacio(viewModel);
                 TempData["Success"] = "Presupuesto creado correctamente.";
                 return RedirectToAction("Index");
             }
@@ -128,10 +140,10 @@ namespace tl2_tp6_2024_Isas321.Controllers
             {
                 _logger.LogError($"Error al crear el presupuesto: {ex.Message}");
                 TempData["Error"] = "Ocurrió un error al crear el presupuesto.";
-                return View(presupuesto);
+                viewModel.Clientes = _clienteRepositorio.ObtenerTodos(); // Recargar la lista de clientes en caso de error
+                return View(viewModel); // Volver a la vista con el ViewModel
             }
         }
-
         public IActionResult Detalle(int id)
         {
             if (id <= 0)
