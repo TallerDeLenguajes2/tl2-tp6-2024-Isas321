@@ -160,10 +160,7 @@ namespace tl2_tp6_2024_Isas321.Repositorios
             }
             return presupuesto;
         }
-
-                    
-            
-
+        
 
         public List<Presupuesto> ObtenerPresupuestoCompleto()
         {
@@ -203,7 +200,7 @@ namespace tl2_tp6_2024_Isas321.Repositorios
                             // Datos del producto y detalle
                             int? idProducto = reader["idProducto"] != DBNull.Value ? Convert.ToInt32(reader["idProducto"]) : (int?)null;
                             string descripcion = reader["Descripcion"] != DBNull.Value ? Convert.ToString(reader["Descripcion"]) : null;
-                            double? precio = reader["Precio"] != DBNull.Value ? Convert.ToDouble(reader["Precio"]) : (double?)null;
+                            decimal? precio = reader["Precio"] != DBNull.Value ? Convert.ToDecimal(reader["Precio"]) : (decimal?)null;
                             int? cantidad = reader["Cantidad"] != DBNull.Value ? Convert.ToInt32(reader["Cantidad"]) : (int?)null;
 
                             Producto producto = null;
@@ -237,184 +234,183 @@ namespace tl2_tp6_2024_Isas321.Repositorios
         }
 
 
-public Presupuesto ObtenerPorId(int idPresupuesto)
-{
-    var _cadenaDeConexion = "Data Source=db/Tienda.db";
-    Presupuesto presupuesto = null;
-
-    var consulta = @"
-        SELECT Pres.idPresupuesto, Pres.FechaCreacion, 
-               Cli.ClienteId, Cli.Nombre AS NombreCliente, Cli.Email, Cli.Telefono,
-               Prod.idProducto, Prod.Descripcion, Prod.Precio, PresD.Cantidad
-        FROM Presupuestos Pres
-        LEFT JOIN Clientes Cli ON Pres.ClienteId = Cli.ClienteId
-        LEFT JOIN PresupuestosDetalle PresD ON Pres.idPresupuesto = PresD.idPresupuesto
-        LEFT JOIN Productos Prod ON Prod.idProducto = PresD.idProducto
-        WHERE Pres.idPresupuesto = @idPresupuesto";
-
-    using (var sqlitecon = new SqliteConnection(_cadenaDeConexion))
-    {
-        sqlitecon.Open();
-        using (var command = new SqliteCommand(consulta, sqlitecon))
+        public Presupuesto ObtenerPorId(int idPresupuesto)
         {
-            command.Parameters.AddWithValue("@idPresupuesto", idPresupuesto);
+            var _cadenaDeConexion = "Data Source=db/Tienda.db";
+            Presupuesto presupuesto = null;
 
-            using (var reader = command.ExecuteReader())
+            var consulta = @"
+                SELECT Pres.idPresupuesto, Pres.FechaCreacion, 
+                    Cli.ClienteId, Cli.Nombre AS NombreCliente, Cli.Email, Cli.Telefono,
+                    Prod.idProducto, Prod.Descripcion, Prod.Precio, PresD.Cantidad
+                FROM Presupuestos Pres
+                LEFT JOIN Clientes Cli ON Pres.ClienteId = Cli.ClienteId
+                LEFT JOIN PresupuestosDetalle PresD ON Pres.idPresupuesto = PresD.idPresupuesto
+                LEFT JOIN Productos Prod ON Prod.idProducto = PresD.idProducto
+                WHERE Pres.idPresupuesto = @idPresupuesto";
+
+            using (var sqlitecon = new SqliteConnection(_cadenaDeConexion))
             {
-                List<PresupuestoDetalle> detalles = new List<PresupuestoDetalle>();
-
-                while (reader.Read())
+                sqlitecon.Open();
+                using (var command = new SqliteCommand(consulta, sqlitecon))
                 {
-                    if (presupuesto == null)
-                    {
-                        // Datos del cliente
-                        int? clienteId = reader["ClienteId"] != DBNull.Value ? Convert.ToInt32(reader["ClienteId"]) : (int?)null;
-                        Cliente cliente = null;
-                        if (clienteId.HasValue)
-                        {
-                            string nombreCliente = Convert.ToString(reader["NombreCliente"]);
-                            string email = Convert.ToString(reader["Email"]);
-                            string telefono = Convert.ToString(reader["Telefono"]);
-                            cliente = new Cliente(clienteId.Value, nombreCliente, email, telefono);
+                    command.Parameters.AddWithValue("@idPresupuesto", idPresupuesto);
 
+                    using (var reader = command.ExecuteReader())
+                    {
+                        List<PresupuestoDetalle> detalles = new List<PresupuestoDetalle>();
+
+                        while (reader.Read())
+                        {
+                            if (presupuesto == null)
+                            {
+                                // Datos del cliente
+                                int? clienteId = reader["ClienteId"] != DBNull.Value ? Convert.ToInt32(reader["ClienteId"]) : (int?)null;
+                                Cliente cliente = null;
+                                if (clienteId.HasValue)
+                                {
+                                    string nombreCliente = Convert.ToString(reader["NombreCliente"]);
+                                    string email = Convert.ToString(reader["Email"]);
+                                    string telefono = Convert.ToString(reader["Telefono"]);
+                                    cliente = new Cliente(clienteId.Value, nombreCliente, email, telefono);
+
+                                }
+
+                                // Datos del presupuesto
+                                DateTime fechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]);
+                                presupuesto = new Presupuesto(idPresupuesto, cliente, fechaCreacion, detalles);
+                            }
+
+                            // Datos de los detalles del presupuesto
+                            if (reader["idProducto"] != DBNull.Value)
+                            {
+                                int idProducto = Convert.ToInt32(reader["idProducto"]);
+                                string descripcion = Convert.ToString(reader["Descripcion"]);
+                                decimal precio = Convert.ToDecimal(reader["Precio"]);
+                                int cantidad = Convert.ToInt32(reader["Cantidad"]);
+
+                                var producto = new Producto(idPresupuesto, descripcion, precio);
+
+                                var presupuestoDetalle = new PresupuestoDetalle(producto, cantidad);
+
+                                detalles.Add(presupuestoDetalle);
+                            }
+                        }
+                    }
+                }
+                sqlitecon.Close();
+            }
+            return presupuesto;
+        }
+
+            
+        public bool AgregarProductoYcantidad(int idPresupuesto, Producto producto, int cantidad)
+        {
+            var _cadenaDeConexion = "Data Source = db/Tienda.db";
+            bool resultado = false;
+
+            var idProducto = producto.IdProducto;
+            var consulta = @"INSERT INTO PresupuestosDetalle (idPresupuesto, idProducto, Cantidad) 
+                            VALUES (@idPresupuesto, @idProducto, @cantidad);";
+            using (var sqliteConnection = new SqliteConnection(_cadenaDeConexion))
+            {
+                sqliteConnection.Open();
+                using (var command = new SqliteCommand(consulta, sqliteConnection))
+                {
+                    command.Parameters.AddWithValue("@idPresupuesto", idPresupuesto);
+                    command.Parameters.AddWithValue("@idProducto", idProducto);
+                    command.Parameters.AddWithValue("@cantidad", cantidad);
+                    int rowsAffected = command.ExecuteNonQuery();
+
+                    if (rowsAffected != 0)
+                        resultado = true;
+                }
+                sqliteConnection.Close();
+            }
+            return resultado;
+        }
+
+
+        public bool Eliminar(int id)
+        {
+            var _cadenaDeConexion = "Data Source = db/Tienda.db";
+            int rowsAffected;
+            const string deleteDetalleQuery = "DELETE FROM PresupuestosDetalle WHERE idPresupuesto = @id";
+            const string deletePresupuestoQuery = "DELETE FROM Presupuestos WHERE idPresupuesto = @id";
+
+            using (var sqliteConnection = new SqliteConnection(_cadenaDeConexion))
+            {
+                sqliteConnection.Open();
+
+                using (var transaction = sqliteConnection.BeginTransaction())
+                {
+                    try
+                    {
+                        using (var detalleCommand = new SqliteCommand(deleteDetalleQuery, sqliteConnection, transaction))
+                        {
+                            detalleCommand.Parameters.AddWithValue("@id", id);
+                            detalleCommand.ExecuteNonQuery();
                         }
 
-                        // Datos del presupuesto
-                        DateTime fechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]);
-                        presupuesto = new Presupuesto(idPresupuesto, cliente, fechaCreacion, detalles);
-                    }
+                        using (var presupuestoCommand = new SqliteCommand(deletePresupuestoQuery, sqliteConnection, transaction))
+                        {
+                            presupuestoCommand.Parameters.AddWithValue("@id", id);
+                            rowsAffected = presupuestoCommand.ExecuteNonQuery();
+                        }
 
-                    // Datos de los detalles del presupuesto
-                    if (reader["idProducto"] != DBNull.Value)
+                        transaction.Commit();
+                    }
+                    catch
                     {
-                        int idProducto = Convert.ToInt32(reader["idProducto"]);
-                        string descripcion = Convert.ToString(reader["Descripcion"]);
-                        double precio = Convert.ToDouble(reader["Precio"]);
-                        int cantidad = Convert.ToInt32(reader["Cantidad"]);
-
-                        var producto = new Producto(idPresupuesto, descripcion, precio);
-
-                        var presupuestoDetalle = new PresupuestoDetalle(producto, cantidad);
-
-                        detalles.Add(presupuestoDetalle);
+                        transaction.Rollback();
+                        throw;
                     }
-                }
-            }
-        }
-        sqlitecon.Close();
-    }
-    return presupuesto;
-}
-    public bool AgregarProductoYcantidad(int idPresupuesto, Producto producto, int cantidad)
-    {
-        var _cadenaDeConexion = "Data Source = db/Tienda.db";
-        bool resultado = false;
-
-        var idProducto = producto.IdProducto;
-        var consulta = @"INSERT INTO PresupuestosDetalle (idPresupuesto, idProducto, Cantidad) 
-                        VALUES (@idPresupuesto, @idProducto, @cantidad);";
-        using (var sqliteConnection = new SqliteConnection(_cadenaDeConexion))
-        {
-            sqliteConnection.Open();
-            using (var command = new SqliteCommand(consulta, sqliteConnection))
-            {
-                command.Parameters.AddWithValue("@idPresupuesto", idPresupuesto);
-                command.Parameters.AddWithValue("@idProducto", idProducto);
-                command.Parameters.AddWithValue("@cantidad", cantidad);
-                int rowsAffected = command.ExecuteNonQuery();
-
-                if (rowsAffected != 0)
-                    resultado = true;
-            }
-            sqliteConnection.Close();
-        }
-        return resultado;
-    }
-
-
-    public bool Eliminar(int id)
-    {
-        var _cadenaDeConexion = "Data Source = db/Tienda.db";
-        int rowsAffected;
-        const string deleteDetalleQuery = "DELETE FROM PresupuestosDetalle WHERE idPresupuesto = @id";
-        const string deletePresupuestoQuery = "DELETE FROM Presupuestos WHERE idPresupuesto = @id";
-
-        using (var sqliteConnection = new SqliteConnection(_cadenaDeConexion))
-        {
-            sqliteConnection.Open();
-
-            using (var transaction = sqliteConnection.BeginTransaction())
-            {
-                try
-                {
-                    using (var detalleCommand = new SqliteCommand(deleteDetalleQuery, sqliteConnection, transaction))
+                    finally
                     {
-                        detalleCommand.Parameters.AddWithValue("@id", id);
-                        detalleCommand.ExecuteNonQuery();
+                        sqliteConnection.Close();
                     }
-
-                    using (var presupuestoCommand = new SqliteCommand(deletePresupuestoQuery, sqliteConnection, transaction))
-                    {
-                        presupuestoCommand.Parameters.AddWithValue("@id", id);
-                        rowsAffected = presupuestoCommand.ExecuteNonQuery();
-                    }
-
-                    transaction.Commit();
-                }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-                finally
-                {
-                    sqliteConnection.Close();
                 }
             }
+            return rowsAffected == 1;
         }
-        return rowsAffected == 1;
-    }
 
-
-    // Método para editar un presupuesto existente
-        // Método para editar un presupuesto existente
-    public bool EditarPresupuesto(int idPresupuesto, Cliente nuevoCliente, DateTime nuevaFechaCreacion)
-    {
-        var _cadenaDeConexion = "Data Source=db/Tienda.db";
-
-        // Validar que el cliente no sea nulo
-        if (nuevoCliente == null || nuevoCliente.ClienteId <= 0)
-            throw new ArgumentException("El cliente especificado no es válido.", nameof(nuevoCliente));
-
-        bool resultado = false;
-
-        var consulta = @"UPDATE Presupuestos 
-                        SET ClienteId = @clienteId, 
-                            FechaCreacion = @nuevaFechaCreacion
-                        WHERE IdPresupuesto = @idPresupuesto;";
-
-        using (var sqliteConnection = new SqliteConnection(_cadenaDeConexion))
+        public bool EditarPresupuesto(int idPresupuesto, Cliente nuevoCliente, DateTime nuevaFechaCreacion)
         {
-            sqliteConnection.Open();
+            var _cadenaDeConexion = "Data Source=db/Tienda.db";
 
-            using (var command = new SqliteCommand(consulta, sqliteConnection))
+            // Validar que el cliente no sea nulo
+            if (nuevoCliente == null || nuevoCliente.ClienteId <= 0)
+                throw new ArgumentException("El cliente especificado no es válido.", nameof(nuevoCliente));
+
+            bool resultado = false;
+
+            var consulta = @"UPDATE Presupuestos 
+                            SET ClienteId = @clienteId, 
+                                FechaCreacion = @nuevaFechaCreacion
+                            WHERE IdPresupuesto = @idPresupuesto;";
+
+            using (var sqliteConnection = new SqliteConnection(_cadenaDeConexion))
             {
-                // Agregar parámetros a la consulta
-                command.Parameters.AddWithValue("@idPresupuesto", idPresupuesto);
-                command.Parameters.AddWithValue("@clienteId", nuevoCliente.ClienteId);
-                command.Parameters.AddWithValue("@nuevaFechaCreacion", nuevaFechaCreacion);
+                sqliteConnection.Open();
 
-                // Ejecutar la consulta
-                int rowsAffected = command.ExecuteNonQuery();
+                using (var command = new SqliteCommand(consulta, sqliteConnection))
+                {
+                    // Agregar parámetros a la consulta
+                    command.Parameters.AddWithValue("@idPresupuesto", idPresupuesto);
+                    command.Parameters.AddWithValue("@clienteId", nuevoCliente.ClienteId);
+                    command.Parameters.AddWithValue("@nuevaFechaCreacion", nuevaFechaCreacion);
 
-                // Si se afectó alguna fila, el resultado es exitoso
-                resultado = rowsAffected > 0;
+                    // Ejecutar la consulta
+                    int rowsAffected = command.ExecuteNonQuery();
+
+                    // Si se afectó alguna fila, el resultado es exitoso
+                    resultado = rowsAffected > 0;
+                }
+
+                sqliteConnection.Close();
             }
 
-            sqliteConnection.Close();
+            return resultado;
         }
-
-        return resultado;
     }
-  }
 }

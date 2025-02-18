@@ -22,7 +22,7 @@ namespace tl2_tp6_2024_Isas321.Repositorios
                 {
                     var IdProducto = Convert.ToInt32(reader["idProducto"]);
                     var Descripcion = reader["Descripcion"].ToString();
-                    var Precio = Convert.ToDouble(reader["Precio"]); // Asegúrate del tipo correcto
+                    var Precio = Convert.ToDecimal(reader["Precio"]); // Asegúrate del tipo correcto
                     var producto = new Producto(IdProducto, Descripcion, Precio);
                     productos.Add(producto);
                 }
