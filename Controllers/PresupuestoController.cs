@@ -218,66 +218,121 @@ namespace tl2_tp6_2024_Isas321.Controllers
         }
 
 
+        // public IActionResult Editar(int id)
+        // {
+        //     if (id <= 0)
+        //     {
+        //         TempData["Error"] = "El ID no es válido.";
+        //         return RedirectToAction("Index");
+        //     }
+
+        //     try
+        //     {
+        //         var presupuesto = _presupuestoRepositorio.ObtenerPorId(id);
+
+        //         if (presupuesto == null)
+        //         {
+        //             TempData["Error"] = $"No se encontró un presupuesto con el ID {id}.";
+        //             return RedirectToAction("Index");
+        //         }
+
+        //         return View(presupuesto); // Cargar la vista con los datos del presupuesto
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         _logger.LogError($"Error al obtener el presupuesto con ID {id}: {ex.Message}");
+        //         TempData["Error"] = "Ocurrió un error al cargar el presupuesto.";
+        //         return RedirectToAction("Index");
+        //     }
+        // }
+
+        // [HttpPost]
+        // public IActionResult Editar(int id, Presupuesto presupuestoEditado)
+        // {
+        //     if (!ModelState.IsValid)
+        //     {
+        //         TempData["Error"] = "Los datos ingresados no son válidos.";
+        //         return View(presupuestoEditado);
+        //     }
+
+        //     try
+        //     {
+        //         var actualizado = _presupuestoRepositorio.EditarPresupuesto(
+        //             id,
+        //             presupuestoEditado.Cliente,
+        //             presupuestoEditado.FechaCreacion
+        //         );
+
+        //         if (!actualizado)
+        //         {
+        //             TempData["Error"] = $"No se pudo actualizar el presupuesto con ID {id}.";
+        //             return View(presupuestoEditado);
+        //         }
+
+        //         TempData["Success"] = $"El presupuesto con ID {id} fue actualizado correctamente.";
+        //         return RedirectToAction("Index");
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         _logger.LogError($"Error al actualizar el presupuesto con ID {id}: {ex.Message}");
+        //         TempData["Error"] = "Ocurrió un error al actualizar el presupuesto.";
+        //         return View(presupuestoEditado);
+        //     }
+        // }
+
+        [HttpGet]
         public IActionResult Editar(int id)
         {
-            if (id <= 0)
+            var presupuesto = _presupuestoRepositorio.ObtenerPorId(id);
+            
+            if (presupuesto == null)
             {
-                TempData["Error"] = "El ID no es válido.";
-                return RedirectToAction("Index");
+                return NotFound();
             }
 
-            try
+            var viewModel = new EditarPresupuestoViewModel
             {
-                var presupuesto = _presupuestoRepositorio.ObtenerPorId(id);
+                IdPresupuesto = presupuesto.IdPresupuesto,
+                ClienteId = presupuesto.Cliente.ClienteId,
+                FechaCreacion = presupuesto.FechaCreacion,
+                Clientes = _clienteRepositorio.ObtenerTodos() // Obtener lista de clientes
+            };
 
-                if (presupuesto == null)
-                {
-                    TempData["Error"] = $"No se encontró un presupuesto con el ID {id}.";
-                    return RedirectToAction("Index");
-                }
-
-                return View(presupuesto); // Cargar la vista con los datos del presupuesto
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error al obtener el presupuesto con ID {id}: {ex.Message}");
-                TempData["Error"] = "Ocurrió un error al cargar el presupuesto.";
-                return RedirectToAction("Index");
-            }
+            return View(viewModel);
         }
 
         [HttpPost]
-        public IActionResult Editar(int id, Presupuesto presupuestoEditado)
+        public IActionResult Editar(EditarPresupuestoViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
-                TempData["Error"] = "Los datos ingresados no son válidos.";
-                return View(presupuestoEditado);
+                // Si hay errores, recargamos la lista de clientes
+                viewModel.Clientes = _clienteRepositorio.ObtenerTodos();
+                return View(viewModel);
             }
 
             try
             {
-                var actualizado = _presupuestoRepositorio.EditarPresupuesto(
-                    id,
-                    presupuestoEditado.Cliente,
-                    presupuestoEditado.FechaCreacion
-                );
+                var nuevoCliente = _clienteRepositorio.ObtenerPorId(viewModel.ClienteId);
+                var resultado = _presupuestoRepositorio.EditarPresupuesto(viewModel.IdPresupuesto, nuevoCliente, viewModel.FechaCreacion);
 
-                if (!actualizado)
+                if (resultado)
                 {
-                    TempData["Error"] = $"No se pudo actualizar el presupuesto con ID {id}.";
-                    return View(presupuestoEditado);
+                    TempData["Success"] = "Presupuesto actualizado correctamente.";
+                    return RedirectToAction("Index");
                 }
-
-                TempData["Success"] = $"El presupuesto con ID {id} fue actualizado correctamente.";
-                return RedirectToAction("Index");
+                else
+                {
+                    TempData["Error"] = "No se pudo actualizar el presupuesto.";
+                    return View(viewModel);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error al actualizar el presupuesto con ID {id}: {ex.Message}");
-                TempData["Error"] = "Ocurrió un error al actualizar el presupuesto.";
-                return View(presupuestoEditado);
+                TempData["Error"] = $"Error inesperado: {ex.Message}";
+                return View(viewModel);
             }
         }
+
     }
 }
