@@ -6,7 +6,6 @@
 
 <h2 class="text-center">@ViewData["Title"]</h2>
 
-<!-- Mostrar mensaje de error si existe -->
 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
 {
     <div class="alert alert-danger" role="alert">
@@ -14,13 +13,13 @@
     </div>
 }
 
-   @* @if (Model.IsAuthenticated)
+   @if (Model.IsAuthenticated)
 {
     
         <span class="nav-link text-dark me-3">Bienvenido, @Model.Username</span>
         <a class="nav-link" href="@Url.Action("Logout", "Login")">Cerrar sesión</a>
     
-}else{ *@
+}else{
   <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
       <div class="card shadow-sm p-4" style="max-width: 400px; width: 100%;">
           <h4 class="card-title text-center mb-4">Iniciar sesión</h4>
@@ -42,4 +41,4 @@
           </form>
       </div>
   </div>
-@* } *@
+}
